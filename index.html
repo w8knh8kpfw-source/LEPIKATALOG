@@ -617,7 +617,7 @@ async function sendOrder(event){
   submit.disabled=true;
   submit.textContent="Отправляем…";
   try{
-   const r=await fetch(ORDER_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...data,text:orderText})});
+  const r=await fetch(ORDER_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...data,items:items().map(p=>({name:p.name,quantity:p.q,price:p.total})),total:money(sum()),text:orderText})});
    if(!r.ok)throw new Error("send");
   }catch(err){
    submit.disabled=false;
