@@ -16,7 +16,8 @@ const server = http.createServer(async (req, res) => {
 
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+res.setHeader("Access-Control-Max-Age", "86400");
 
   if (origin && ALLOWED_ORIGIN && origin !== ALLOWED_ORIGIN) {
     res.writeHead(403);
