@@ -11,6 +11,7 @@ const CHAT_IDS = [
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
 
 const server = http.createServer(async (req, res) => {
+  console.log("INCOMING REQUEST:", req.method, req.url, "ORIGIN:", req.headers.origin);
   const origin = req.headers.origin;
 
   res.setHeader("Content-Type", "application/json; charset=utf-8");
