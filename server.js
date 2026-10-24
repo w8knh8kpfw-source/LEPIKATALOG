@@ -1,51 +1,29 @@
 
-
 const http = require("http");
-const fs = require("fs");
-const path = require("path");
 
 const PORT = process.env.PORT || 10000;
 const BOT_TOKEN = process.env.BOT_TOKEN;
-
 const CHAT_IDS = [
   process.env.CHAT_ID_1,
   process.env.CHAT_ID_2
-].filter(Boolean);
+].filter(Boolean).map(String);
 
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
-const REVIEWS_FILE =
-  process.env.REVIEWS_FILE || "/data/reviews.json";
+const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || "review-photos";
 
 let polling = false;
 let offset = 0;
-let reviewQueue = Promise.resolve();
 
-function readReviews() {
-  try {
-    return JSON.parse(fs.readFileSync(REVIEWS_FILE, "utf8"));
-  } catch (error) {
-    if (error.code === "ENOENT") return [];
-    throw error;
-  }
-}
-
-function saveReviews(reviews) {
-  fs.mkdirSync(path.dirname(REVIEWS_FILE), { recursive: true });
-
-  const tempFile = REVIEWS_FILE + ".tmp";
-  fs.writeFileSync(tempFile, JSON.stringify(reviews, null, 2));
-  fs.renameSync(tempFile, REVIEWS_FILE);
-}
-
-function queueReviewTask(task) {
-  const result = reviewQueue.then(task);
-  reviewQueue = result.catch(error =>
-    console.error("Review storage error:", error.message)
-  );
-  return result;
+function isAdmin(chatId, userId) {
+  return CHAT_IDS.includes(String(chatId)) &&
+    CHAT_IDS.includes(String(userId));
 }
 
 async function telegram(method, data = {}) {
+  if (!BOT_TOKEN) throw new Error("BOT_TOKEN is missing");
+
   const response = await fetch(
     `https://api.telegram.org/bot${BOT_TOKEN}/${method}`,
     {
@@ -57,29 +35,127 @@ async function telegram(method, data = {}) {
   );
 
   const result = await response.json();
-
   if (!response.ok || !result.ok) {
     throw new Error(result.description || `Telegram HTTP ${response.status}`);
   }
-
   return result.result;
 }
 
-function isAdmin(chatId, userId) {
-  return CHAT_IDS.includes(String(chatId)) &&
-    CHAT_IDS.includes(String(userId));
+async function sendText(chatId, text, extra = {}) {
+  return telegram("sendMessage", { chat_id: chatId, text, ...extra });
 }
 
-async function sendText(chatId, text, extra = {}) {
-  return telegram("sendMessage", {
-    chat_id: chatId,
-    text,
+function supabaseHeaders(extra = {}) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error("Supabase environment variables are missing");
+  }
+
+  return {
+    apikey: SUPABASE_KEY,
+    Authorization: `Bearer ${SUPABASE_KEY}`,
     ...extra
+  };
+}
+
+async function dbRequest(path, options = {}) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: supabaseHeaders(options.headers || {})
   });
+
+  const body = await response.text();
+  if (!response.ok) {
+    throw new Error(`Supabase database error ${response.status}: ${body}`);
+  }
+
+  return body ? JSON.parse(body) : null;
+}
+
+async function getReviews() {
+  return dbRequest(
+    "reviews?select=id,name,review_text,photo_url,created_at&order=created_at.desc"
+  );
+}
+
+async function savePhotoToSupabase(fileId) {
+  const fileInfo = await telegram("getFile", { file_id: fileId });
+  if (!fileInfo.file_path) throw new Error("Telegram photo path missing");
+
+  const downloadUrl =
+    `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileInfo.file_path}`;
+
+  const photoResponse = await fetch(downloadUrl, {
+    signal: AbortSignal.timeout(60000)
+  });
+
+  if (!photoResponse.ok) {
+    throw new Error("Could not download photo from Telegram");
+  }
+
+  const imageBuffer = Buffer.from(await photoResponse.arrayBuffer());
+  const extension = (fileInfo.file_path.split(".").pop() || "jpg")
+    .toLowerCase();
+  const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
+  const safeExtension = allowedExtensions.includes(extension) ? extension : "jpg";
+  const contentType = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp"
+  }[safeExtension];
+
+  const objectPath = `reviews/${Date.now()}-${Math.random()
+    .toString(36).slice(2, 10)}.${safeExtension}`;
+
+  const uploadResponse = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${objectPath}`,
+    {
+      method: "POST",
+      headers: supabaseHeaders({
+        "Content-Type": contentType,
+        "x-upsert": "false"
+      }),
+      body: imageBuffer,
+      signal: AbortSignal.timeout(60000)
+    }
+  );
+
+  if (!uploadResponse.ok) {
+    const details = await uploadResponse.text();
+    throw new Error(`Photo upload failed ${uploadResponse.status}: ${details}`);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${objectPath}`;
+}
+
+async function addReview(name, text, photoUrl) {
+  const rows = await dbRequest("reviews", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify({
+      name,
+      review_text: text,
+      photo_url: photoUrl
+    })
+  });
+
+  if (!rows || !rows[0]) throw new Error("Review was not saved");
+  return rows[0];
+}
+
+async function deleteReview(id) {
+  const rows = await dbRequest(
+    `reviews?id=eq.${encodeURIComponent(id)}&select=id`,
+    { method: "DELETE", headers: { Prefer: "return=representation" } }
+  );
+  return Array.isArray(rows) && rows.length > 0;
 }
 
 async function showReviews(chatId) {
-  const reviews = await queueReviewTask(() => readReviews());
+  const reviews = await getReviews();
 
   if (!reviews.length) {
     return sendText(chatId, "Пока отзывов нет.", {
@@ -96,31 +172,27 @@ async function showReviews(chatId) {
     const caption = [
       `👤 ${review.name}`,
       "",
-      review.text,
+      review.review_text,
       "",
       `ID: ${review.id}`
     ].join("\n").slice(0, 1000);
 
     const keyboard = {
-      inline_keyboard: [[
-        {
-          text: "🗑 Удалить",
-          callback_data: `del:${review.id}`
-        }
-      ]]
+      inline_keyboard: [[{
+        text: "🗑 Удалить",
+        callback_data: `del:${review.id}`
+      }]]
     };
 
-    if (review.photo) {
+    if (review.photo_url) {
       await telegram("sendPhoto", {
         chat_id: chatId,
-        photo: review.photo,
+        photo: review.photo_url,
         caption,
         reply_markup: keyboard
       });
     } else {
-      await sendText(chatId, caption, {
-        reply_markup: keyboard
-      });
+      await sendText(chatId, caption, { reply_markup: keyboard });
     }
   }
 }
@@ -142,7 +214,7 @@ async function handleUpdate(update) {
         "LEPÍ — управление отзывами.\n\n" +
         "Отправь фотографию с подписью:\n" +
         "первая строка — имя клиента\n" +
-        "вторая и следующие строки — отзыв.\n\n" +
+        "вторая и следующие строки — текст отзыва.\n\n" +
         "Нажми «Отзывы», чтобы посмотреть и удалить отзывы.",
         {
           reply_markup: {
@@ -166,34 +238,30 @@ async function handleUpdate(update) {
       if (!name || !reviewText) {
         return sendText(
           chatId,
-          "Добавь подпись к фотографии в формате:\n" +
-          "Имя клиента\nТекст отзыва"
+          "Добавь подпись к фотографии в формате:\nИмя клиента\nТекст отзыва"
         );
       }
 
-      const photo = message.photo[message.photo.length - 1].file_id;
+      try {
+        const largestPhoto = message.photo[message.photo.length - 1];
+        const photoUrl = await savePhotoToSupabase(largestPhoto.file_id);
+        const review = await addReview(
+          name.slice(0, 100),
+          reviewText.slice(0, 3000),
+          photoUrl
+        );
 
-      const review = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        name: name.slice(0, 100),
-        text: reviewText.slice(0, 3000),
-        photo,
-        createdAt: new Date().toISOString()
-      };
-
-      await queueReviewTask(() => {
-        const reviews = readReviews();
-        reviews.push(review);
-        saveReviews(reviews);
-      });
-
-      return sendText(chatId, `✅ Отзыв ${name} сохранён.`);
+        return sendText(chatId, `✅ Отзыв ${review.name} сохранён.`);
+      } catch (error) {
+        console.error("Could not save review:", error.message);
+        return sendText(
+          chatId,
+          "❌ Не удалось сохранить отзыв. Проверь настройки Supabase и попробуй ещё раз."
+        );
+      }
     }
 
-    return sendText(
-      chatId,
-      "Отправь фото с подписью или нажми «Отзывы»."
-    );
+    return sendText(chatId, "Отправь фото с подписью или нажми «Отзывы».");
   }
 
   const callback = update.callback_query;
@@ -210,41 +278,35 @@ async function handleUpdate(update) {
     });
   }
 
-  const match = /^del:(.+)$/.exec(callback.data || "");
-
+  const match = /^del:(\d+)$/.exec(callback.data || "");
   if (!match) {
     return telegram("answerCallbackQuery", {
       callback_query_id: callback.id
     });
   }
 
-  const reviewId = match[1];
+  try {
+    const deleted = await deleteReview(match[1]);
 
-  const deleted = await queueReviewTask(() => {
-    const reviews = readReviews();
-    const remaining = reviews.filter(item => item.id !== reviewId);
+    await telegram("answerCallbackQuery", {
+      callback_query_id: callback.id,
+      text: deleted ? "Отзыв удалён." : "Отзыв уже не найден."
+    });
 
-    if (remaining.length === reviews.length) return false;
-
-    saveReviews(remaining);
-    return true;
-  });
-
-  await telegram("answerCallbackQuery", {
-    callback_query_id: callback.id,
-    text: deleted ? "Отзыв удалён." : "Отзыв уже не найден."
-  });
-
-  if (deleted) {
-    try {
+    if (deleted) {
       await telegram("editMessageReplyMarkup", {
         chat_id: chatId,
         message_id: callback.message.message_id,
         reply_markup: { inline_keyboard: [] }
       });
-    } catch (error) {
-      console.error("Could not update review message:", error.message);
     }
+  } catch (error) {
+    console.error("Could not delete review:", error.message);
+    await telegram("answerCallbackQuery", {
+      callback_query_id: callback.id,
+      text: "Не удалось удалить отзыв.",
+      show_alert: true
+    });
   }
 }
 
@@ -253,7 +315,6 @@ async function pollTelegram() {
   polling = true;
 
   try {
-    // Этот режим использует long polling, а не webhook.
     await telegram("deleteWebhook", { drop_pending_updates: false });
 
     while (true) {
@@ -266,7 +327,6 @@ async function pollTelegram() {
 
         for (const update of updates) {
           offset = update.update_id + 1;
-
           try {
             await handleUpdate(update);
           } catch (error) {
@@ -308,22 +368,22 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // Публичный список отзывов для сайта.
   if (req.method === "GET" && req.url === "/api/reviews") {
     try {
-      const reviews = await queueReviewTask(() => readReviews());
+      const reviews = await getReviews();
 
-      res.writeHead(200, {
-        "Cache-Control": "no-store"
-      });
-
+      res.writeHead(200, { "Cache-Control": "no-store" });
       return res.end(JSON.stringify({
-        reviews: reviews.map(({ id, name, text, photo, createdAt }) => ({
-          id, name, text, photo, createdAt
+        reviews: reviews.map(review => ({
+          id: review.id,
+          name: review.name,
+          text: review.review_text,
+          photo: review.photo_url,
+          createdAt: review.created_at
         }))
       }));
     } catch (error) {
-      console.error("Could not read reviews:", error.message);
+      console.error("Could not load reviews:", error.message);
       res.writeHead(500);
       return res.end(JSON.stringify({ error: "Could not load reviews" }));
     }
@@ -345,7 +405,6 @@ const server = http.createServer(async (req, res) => {
 
     for await (const chunk of req) {
       body += chunk;
-
       if (body.length > 20000) {
         res.writeHead(413);
         return res.end(JSON.stringify({ error: "Order too large" }));
@@ -353,7 +412,6 @@ const server = http.createServer(async (req, res) => {
     }
 
     const order = JSON.parse(body);
-
     const name = String(order.name || "").trim();
     const phone = String(order.phone || "").trim();
     const address = String(order.address || "").trim();
@@ -368,7 +426,6 @@ const server = http.createServer(async (req, res) => {
 
     const itemText = items.map(item => {
       if (typeof item === "string") return item;
-
       return [
         item.name || item.title || "Товар",
         item.quantity ? ` × ${item.quantity}` : "",
@@ -397,10 +454,12 @@ const server = http.createServer(async (req, res) => {
             chat_id: chatId,
             text: message
           });
-
           return Boolean(result.message_id);
         } catch (error) {
-          console.error(`Order delivery failed for recipient ${index + 1}:`, error.message);
+          console.error(
+            `Order delivery failed for recipient ${index + 1}:`,
+            error.message
+          );
           return false;
         }
       })
