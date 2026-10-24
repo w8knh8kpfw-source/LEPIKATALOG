@@ -465,7 +465,9 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  if (req.method === "GET" && req.url === "/api/reviews") {
+  const pathname = new URL(req.url, "http://localhost").pathname;
+
+if (req.method === "GET" && pathname === "/api/reviews") {
     try {
       const reviews = await getReviews();
 
