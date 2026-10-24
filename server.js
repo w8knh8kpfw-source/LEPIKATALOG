@@ -35,14 +35,20 @@ async function telegram(method, data = {}) {
   );
 
   const result = await response.json();
+
   if (!response.ok || !result.ok) {
     throw new Error(result.description || `Telegram HTTP ${response.status}`);
   }
+
   return result.result;
 }
 
 async function sendText(chatId, text, extra = {}) {
-  return telegram("sendMessage", { chat_id: chatId, text, ...extra });
+  return telegram("sendMessage", {
+    chat_id: chatId,
+    text,
+    ...extra
+  });
 }
 
 function supabaseHeaders(extra = {}) {
@@ -50,22 +56,28 @@ function supabaseHeaders(extra = {}) {
     throw new Error("Supabase environment variables are missing");
   }
 
+  // Новый ключ sb_secret_ передаём через apikey.
   return {
     apikey: SUPABASE_KEY,
-    Authorization: `Bearer ${SUPABASE_KEY}`,
     ...extra
   };
 }
 
 async function dbRequest(path, options = {}) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    ...options,
-    headers: supabaseHeaders(options.headers || {})
-  });
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/${path}`,
+    {
+      ...options,
+      headers: supabaseHeaders(options.headers || {})
+    }
+  );
 
   const body = await response.text();
+
   if (!response.ok) {
-    throw new Error(`Supabase database error ${response.status}: ${body}`);
+    throw new Error(
+      `Supabase database error ${response.status}: ${body}`
+    );
   }
 
   return body ? JSON.parse(body) : null;
@@ -78,8 +90,13 @@ async function getReviews() {
 }
 
 async function savePhotoToSupabase(fileId) {
-  const fileInfo = await telegram("getFile", { file_id: fileId });
-  if (!fileInfo.file_path) throw new Error("Telegram photo path missing");
+  const fileInfo = await telegram("getFile", {
+    file_id: fileId
+  });
+
+  if (!fileInfo.file_path) {
+    throw new Error("Telegram photo path missing");
+  }
 
   const downloadUrl =
     `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileInfo.file_path}`;
@@ -92,11 +109,25 @@ async function savePhotoToSupabase(fileId) {
     throw new Error("Could not download photo from Telegram");
   }
 
-  const imageBuffer = Buffer.from(await photoResponse.arrayBuffer());
-  const extension = (fileInfo.file_path.split(".").pop() || "jpg")
-    .toLowerCase();
+  const imageBuffer = Buffer.from(
+    await photoResponse.arrayBuffer()
+  );
+
+  // Ограничиваем размер загружаемого файла.
+  if (imageBuffer.length > 8 * 1024 * 1024) {
+    throw new Error("Photo is larger than 8 MB");
+  }
+
+  const extension = (
+    fileInfo.file_path.split(".").pop() || "jpg"
+  ).toLowerCase();
+
   const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
-  const safeExtension = allowedExtensions.includes(extension) ? extension : "jpg";
+
+  const safeExtension = allowedExtensions.includes(extension)
+    ? extension
+    : "jpg";
+
   const contentType = {
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
@@ -104,8 +135,9 @@ async function savePhotoToSupabase(fileId) {
     webp: "image/webp"
   }[safeExtension];
 
-  const objectPath = `reviews/${Date.now()}-${Math.random()
-    .toString(36).slice(2, 10)}.${safeExtension}`;
+  const objectPath =
+    `reviews/${Date.now()}-${Math.random()
+      .toString(36).slice(2, 10)}.${safeExtension}`;
 
   const uploadResponse = await fetch(
     `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${objectPath}`,
@@ -122,10 +154,15 @@ async function savePhotoToSupabase(fileId) {
 
   if (!uploadResponse.ok) {
     const details = await uploadResponse.text();
-    throw new Error(`Photo upload failed ${uploadResponse.status}: ${details}`);
+    throw new Error(
+      `Photo upload failed ${uploadResponse.status}: ${details}`
+    );
   }
 
-  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${objectPath}`;
+  return (
+    `${SUPABASE_URL}/storage/v1/object/public/` +
+    `${SUPABASE_BUCKET}/${objectPath}`
+  );
 }
 
 async function addReview(name, text, photoUrl) {
@@ -142,15 +179,22 @@ async function addReview(name, text, photoUrl) {
     })
   });
 
-  if (!rows || !rows[0]) throw new Error("Review was not saved");
+  if (!rows || !rows[0]) {
+    throw new Error("Review was not saved");
+  }
+
   return rows[0];
 }
 
 async function deleteReview(id) {
   const rows = await dbRequest(
     `reviews?id=eq.${encodeURIComponent(id)}&select=id`,
-    { method: "DELETE", headers: { Prefer: "return=representation" } }
+    {
+      method: "DELETE",
+      headers: { Prefer: "return=representation" }
+    }
   );
+
   return Array.isArray(rows) && rows.length > 0;
 }
 
@@ -192,7 +236,9 @@ async function showReviews(chatId) {
         reply_markup: keyboard
       });
     } else {
-      await sendText(chatId, caption, { reply_markup: keyboard });
+      await sendText(chatId, caption, {
+        reply_markup: keyboard
+      });
     }
   }
 }
@@ -226,7 +272,15 @@ async function handleUpdate(update) {
     }
 
     if (text === "Отзывы" || text === "/reviews") {
-      return showReviews(chatId);
+      try {
+        return await showReviews(chatId);
+      } catch (error) {
+        console.error("Could not show reviews:", error.message);
+        return sendText(
+          chatId,
+          "Не удалось загрузить отзывы. Проверь настройки Supabase."
+        );
+      }
     }
 
     if (message.photo?.length) {
@@ -238,30 +292,43 @@ async function handleUpdate(update) {
       if (!name || !reviewText) {
         return sendText(
           chatId,
-          "Добавь подпись к фотографии в формате:\nИмя клиента\nТекст отзыва"
+          "Добавь подпись к фотографии в формате:\n" +
+          "Имя клиента\nТекст отзыва"
         );
       }
 
       try {
-        const largestPhoto = message.photo[message.photo.length - 1];
-        const photoUrl = await savePhotoToSupabase(largestPhoto.file_id);
+        const largestPhoto =
+          message.photo[message.photo.length - 1];
+
+        const photoUrl = await savePhotoToSupabase(
+          largestPhoto.file_id
+        );
+
         const review = await addReview(
           name.slice(0, 100),
           reviewText.slice(0, 3000),
           photoUrl
         );
 
-        return sendText(chatId, `✅ Отзыв ${review.name} сохранён.`);
+        return sendText(
+          chatId,
+          `✅ Отзыв ${review.name} сохранён.`
+        );
       } catch (error) {
         console.error("Could not save review:", error.message);
         return sendText(
           chatId,
-          "❌ Не удалось сохранить отзыв. Проверь настройки Supabase и попробуй ещё раз."
+          "❌ Не удалось сохранить отзыв. " +
+          "Проверь настройки Supabase и попробуй ещё раз."
         );
       }
     }
 
-    return sendText(chatId, "Отправь фото с подписью или нажми «Отзывы».");
+    return sendText(
+      chatId,
+      "Отправь фото с подписью или нажми «Отзывы»."
+    );
   }
 
   const callback = update.callback_query;
@@ -279,6 +346,7 @@ async function handleUpdate(update) {
   }
 
   const match = /^del:(\d+)$/.exec(callback.data || "");
+
   if (!match) {
     return telegram("answerCallbackQuery", {
       callback_query_id: callback.id
@@ -302,6 +370,7 @@ async function handleUpdate(update) {
     }
   } catch (error) {
     console.error("Could not delete review:", error.message);
+
     await telegram("answerCallbackQuery", {
       callback_query_id: callback.id,
       text: "Не удалось удалить отзыв.",
@@ -312,10 +381,13 @@ async function handleUpdate(update) {
 
 async function pollTelegram() {
   if (polling || !BOT_TOKEN || CHAT_IDS.length !== 2) return;
+
   polling = true;
 
   try {
-    await telegram("deleteWebhook", { drop_pending_updates: false });
+    await telegram("deleteWebhook", {
+      drop_pending_updates: false
+    });
 
     while (true) {
       try {
@@ -327,19 +399,30 @@ async function pollTelegram() {
 
         for (const update of updates) {
           offset = update.update_id + 1;
+
           try {
             await handleUpdate(update);
           } catch (error) {
-            console.error("Telegram update error:", error.message);
+            console.error(
+              "Telegram update error:",
+              error.message
+            );
           }
         }
       } catch (error) {
-        console.error("Telegram polling error:", error.message);
+        console.error(
+          "Telegram polling error:",
+          error.message
+        );
+
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
   } catch (error) {
-    console.error("Telegram bot startup error:", error.message);
+    console.error(
+      "Telegram bot startup error:",
+      error.message
+    );
   } finally {
     polling = false;
   }
@@ -348,18 +431,32 @@ async function pollTelegram() {
 const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin;
 
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader(
+    "Content-Type",
+    "application/json; charset=utf-8"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
   res.setHeader("Access-Control-Max-Age", "86400");
 
   if (origin && ALLOWED_ORIGIN && origin !== ALLOWED_ORIGIN) {
     res.writeHead(403);
-    return res.end(JSON.stringify({ error: "Origin not allowed" }));
+    return res.end(JSON.stringify({
+      error: "Origin not allowed"
+    }));
   }
 
   if (origin && ALLOWED_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      ALLOWED_ORIGIN
+    );
     res.setHeader("Vary", "Origin");
   }
 
@@ -372,7 +469,10 @@ const server = http.createServer(async (req, res) => {
     try {
       const reviews = await getReviews();
 
-      res.writeHead(200, { "Cache-Control": "no-store" });
+      res.writeHead(200, {
+        "Cache-Control": "no-store"
+      });
+
       return res.end(JSON.stringify({
         reviews: reviews.map(review => ({
           id: review.id,
@@ -383,21 +483,34 @@ const server = http.createServer(async (req, res) => {
         }))
       }));
     } catch (error) {
-      console.error("Could not load reviews:", error.message);
+      console.error(
+        "Could not load reviews:",
+        error.message
+      );
+
       res.writeHead(500);
-      return res.end(JSON.stringify({ error: "Could not load reviews" }));
+      return res.end(JSON.stringify({
+        error: "Could not load reviews"
+      }));
     }
   }
 
   if (req.method !== "POST" || req.url !== "/api/order") {
     res.writeHead(404);
-    return res.end(JSON.stringify({ error: "Not found" }));
+    return res.end(JSON.stringify({
+      error: "Not found"
+    }));
   }
 
   if (!BOT_TOKEN || CHAT_IDS.length !== 2 || !ALLOWED_ORIGIN) {
-    console.error("Configuration error: check required environment variables");
+    console.error(
+      "Configuration error: check required environment variables"
+    );
+
     res.writeHead(500);
-    return res.end(JSON.stringify({ error: "Server not configured" }));
+    return res.end(JSON.stringify({
+      error: "Server not configured"
+    }));
   }
 
   try {
@@ -405,13 +518,17 @@ const server = http.createServer(async (req, res) => {
 
     for await (const chunk of req) {
       body += chunk;
+
       if (body.length > 20000) {
         res.writeHead(413);
-        return res.end(JSON.stringify({ error: "Order too large" }));
+        return res.end(JSON.stringify({
+          error: "Order too large"
+        }));
       }
     }
 
     const order = JSON.parse(body);
+
     const name = String(order.name || "").trim();
     const phone = String(order.phone || "").trim();
     const address = String(order.address || "").trim();
@@ -419,13 +536,17 @@ const server = http.createServer(async (req, res) => {
     const items = order.items;
     const total = String(order.total ?? "").trim();
 
-    if (!name || !phone || !Array.isArray(items) || items.length === 0) {
+    if (!name || !phone || !Array.isArray(items) ||
+        items.length === 0) {
       res.writeHead(400);
-      return res.end(JSON.stringify({ error: "Missing order details" }));
+      return res.end(JSON.stringify({
+        error: "Missing order details"
+      }));
     }
 
     const itemText = items.map(item => {
       if (typeof item === "string") return item;
+
       return [
         item.name || item.title || "Товар",
         item.quantity ? ` × ${item.quantity}` : "",
@@ -454,12 +575,14 @@ const server = http.createServer(async (req, res) => {
             chat_id: chatId,
             text: message
           });
+
           return Boolean(result.message_id);
         } catch (error) {
           console.error(
             `Order delivery failed for recipient ${index + 1}:`,
             error.message
           );
+
           return false;
         }
       })
@@ -467,7 +590,9 @@ const server = http.createServer(async (req, res) => {
 
     if (results.every(Boolean)) {
       res.writeHead(200);
-      return res.end(JSON.stringify({ success: true }));
+      return res.end(JSON.stringify({
+        success: true
+      }));
     }
 
     res.writeHead(502);
@@ -475,9 +600,15 @@ const server = http.createServer(async (req, res) => {
       error: "Could not deliver order to all recipients"
     }));
   } catch (error) {
-    console.error("Order processing failed:", error.message);
+    console.error(
+      "Order processing failed:",
+      error.message
+    );
+
     res.writeHead(400);
-    return res.end(JSON.stringify({ error: "Invalid order request" }));
+    return res.end(JSON.stringify({
+      error: "Invalid order request"
+    }));
   }
 });
 
