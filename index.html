@@ -1064,28 +1064,56 @@ document.addEventListener("keydown",event=>{
 });
 
 /* Отзывы — только реальные данные, полученные от сервера */
+
 async function loadReviews(){
  const container=$("reviewList");
  const reviewEndpoint="https://lepi-orders.onrender.com/api/reviews";
+ let allReviews=[];
+ let shown=6;
+
+ function renderReviews(){
+  container.innerHTML=`
+   <div class="review-list">${allReviews.slice(0,shown).map(review=>`
+    <article class="review-card">
+     <strong>${esc(review.name||"Покупатель LEPÍ")}</strong>
+     <p>${esc(review.text||review.review_text||review.message||"")}</p>
+     ${review.photo ? `<img src="${esc(review.photo)}" alt="Фото отзыва" loading="lazy" style="width:100%;height:auto;border-radius:12px;margin-top:10px;">` : ""}
+    </article>
+   `).join("")}</div>
+   ${shown<allReviews.length ? `
+    <button class="btn secondary" id="showMoreReviews" type="button" style="display:block;margin:24px auto 0;">
+     Показать ещё
+    </button>
+   ` : ""}
+  `;
+
+  const button=$("showMoreReviews");
+  if(button){
+   button.addEventListener("click",()=>{
+    shown+=6;
+    renderReviews();
+   });
+  }
+ }
+
  try{
   const response=await fetch(reviewEndpoint,{method:"GET"});
   if(!response.ok)throw new Error("Отзывы пока недоступны");
-  const result=await response.json();
-  const reviews=Array.isArray(result)?result:result.reviews;
-  if(!Array.isArray(reviews)||reviews.length===0)throw new Error("Нет отзывов");
-  container.innerHTML=`<div class="review-list">${reviews.slice(0,6).map(review=>`
- 
-<article class="review-card">
-  <strong>${esc(review.name||"Покупатель LEPÍ")}</strong>
-  <p>${esc(review.text||review.review_text||review.message||"")}</p>
-  ${review.photo ? `<img src="${esc(review.photo)}" alt="Фото отзыва" loading="lazy" style="width:100%;height:auto;border-radius:12px;margin-top:10px;">` : ""}
-</article>
 
-  `).join("")}</div>`;
+  const result=await response.json();
+  allReviews=Array.isArray(result)?result:result.reviews;
+
+  if(!Array.isArray(allReviews)||allReviews.length===0){
+   container.innerHTML=`<div class="review-empty">Отзывы скоро появятся здесь. Пока их можно посмотреть в нашем Instagram.</div>`;
+   return;
+  }
+
+  renderReviews();
  }catch(error){
   container.innerHTML=`<div class="review-empty">Отзывы пока не загружаются. Посмотрите отзывы покупателей в нашем Instagram.</div>`;
  }
 }
+
 
 $("year").textContent=new Date().getFullYear();
 showGuideSlide(0);
