@@ -843,7 +843,14 @@ function updateCart(){
  $("cartFoot").innerHTML=`
   <div class="total"><span>Товары · ${count()} шт./пачек</span><strong>${money(sum())}</strong></div>
   <p class="deliverywarn">Доставка оплачивается отдельно. Её стоимость уточним при подтверждении заказа.</p>
-  <button class="btn primary" id="checkoutBtn" type="button">Оформить заказ ${icon("arrow")}</button>`;
+    <label class="privacy-check" for="privacyConsent">
+    <input type="checkbox" id="privacyConsent">
+    <span>Я ознакомился(-ась) с
+      <a href="privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>
+    </span>
+  </label>
+  <p id="privacyHint" class="privacy-hint" aria-live="polite"></p>
+  <button class="btn primary" id="checkoutBtn" type="button" disabled>Оформить заказ ${icon("arrow")}</button>`;
  $("checkoutBtn").onclick=checkout;
 }
 
