@@ -817,15 +817,69 @@ function sum(){return items().reduce((total,p)=>total+p.total,0)}
 function count(){return items().reduce((total,p)=>total+p.q,0)}
 
 function updateCart(){
+
  $("cartCount").textContent=count();
  $("mobileTotal").textContent=money(sum());
+
  const list=items();
+
  if(!list.length){
-  $("cartBody").innerHTML=`<div class="empty"><div class="empty-icon">${icon("bag")}</div><b>Корзина пока пуста</b>Выберите блюда в каталоге.<br><button class="btn primary" id="goCatalog" type="button">Открыть каталог ${icon("arrow")}</button></div>`;
-  $("cartFoot").innerHTML='<p class="deliverywarn">Доставка оплачивается отдельно.</p>';
-  $("goCatalog").onclick=()=>{closeCart();$("catalog").scrollIntoView({behavior:"smooth"})};
+
+  $("cartBody").innerHTML=`
+   <div class="empty">
+    <div class="empty-icon">${icon("bag")}</div>
+    <b>Корзина пока пуста</b>
+    Выберите блюда в каталоге.<br>
+    <button class="btn primary" id="goCatalog" type="button">
+     Открыть каталог ${icon("arrow")}
+    </button>
+   </div>`;
+
+  $("cartFoot").innerHTML=
+   '<p class="deliverywarn">Доставка оплачивается отдельно.</p>';
+
+  $("goCatalog").onclick=()=>{
+   closeCart();
+   $("catalog").scrollIntoView({behavior:"smooth"});
+  };
+
   return;
  }
+
+ $("cartBody").innerHTML=list.map(p=>`
+  <div class="cartline">
+   <div class="cartthumb">${image(p,true)}</div>
+   <div>
+    <strong>${esc(p.name)}</strong>
+    <small>${esc(qtyText(p,p.q))}</small>
+    <div class="cartactions">
+     <button class="minibtn" data-minus="${p.id}" type="button" aria-label="Уменьшить количество">${icon("minus")}</button>
+     <span>${p.q}</span>
+     <button class="minibtn" data-plus="${p.id}" type="button" aria-label="Увеличить количество">${icon("plus")}</button>
+     <button class="remove" data-remove="${p.id}" type="button" aria-label="Удалить товар">${icon("trash")}</button>
+    </div>
+   </div>
+   <div class="lineprice">${money(p.total)}</div>
+  </div>
+ `).join("");
+
+ $("cartFoot").innerHTML=`
+  <div class="total">
+   <span>Товары · ${count()} шт./пачек</span>
+   <strong>${money(sum())}</strong>
+  </div>
+
+  <p class="deliverywarn">
+   Доставка оплачивается отдельно. Её стоимость уточним при подтверждении заказа.
+  </p>
+
+  <button class="btn primary" id="checkoutBtn" type="button">
+   Оформить заказ ${icon("arrow")}
+  </button>
+ `;
+
+ $("checkoutBtn").onclick=checkout;
+}
  $("cartBody").innerHTML=list.map(p=>`
   <div class="cartline">
    <div class="cartthumb">${image(p,true)}</div>
