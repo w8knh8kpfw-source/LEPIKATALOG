@@ -827,7 +827,9 @@ function items(){
 function sum(){return items().reduce((total,p)=>total+p.total,0)}
 function count(){return items().reduce((total,p)=>total+p.q,0)}
 
-let privacyConsent=false;\n\nfunction updateCart(){
+let privacyConsent=false;
+
+function updateCart(){
  $("cartCount").textContent=count();
  $("mobileTotal").textContent=money(sum());
  const list=items();
