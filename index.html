@@ -242,6 +242,15 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 
 
 /* Согласие на обработку персональных данных */
+.product-status{display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:100%;padding:6px 9px;margin:0 0 9px;border-radius:30px;font-size:9px;font-weight:700;line-height:1.35}
+.product-status::before{content:"";width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:currentColor}
+.product-status.available{color:#47764a;background:#e5efdf}
+.product-status.available::before{animation:stockPulse 1.8s ease-in-out infinite}
+.product-status.preorder{color:#927044;background:#f3eadb}
+.product-status.unavailable{color:#9b514a;background:#f3e4e1}
+@keyframes stockPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 #6e986b00}50%{opacity:.58;box-shadow:0 0 0 4px #6e986b22}}
+.product-status-detail{margin:8px 0 14px}
+.product .plus:disabled,.detailcopy .btn:disabled{opacity:.48;cursor:not-allowed;transform:none;box-shadow:none}
 .privacy-consent{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;margin:0 0 12px;border:1px solid #dce3d4;border-radius:14px;background:#ffffff9c;font-size:11px;line-height:1.65;color:#69715f;transition:border-color .2s,background .2s,transform .2s}
 .privacy-consent input{width:17px;height:17px;flex:0 0 17px;margin:1px 0 0;accent-color:var(--green)}
 .privacy-consent a{color:var(--deep);font-weight:700;text-decoration:underline;text-underline-offset:3px}
@@ -612,7 +621,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 2.2</div>
+ <div class="version">Версия 2.3</div>
 </footer>
 
 <div class="mobilecart">
@@ -645,6 +654,12 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 "use strict";
 
 const ORDER_ENDPOINT="https://lepi-orders.onrender.com/api/order";
+const STATUS_ENDPOINT="https://lepi-orders.onrender.com/api/product-statuses";
+const productStatuses={};
+const STATUS_META={available:{label:"В наличии",className:"available"},preorder:{label:"Готовим по предзаказу",className:"preorder"},unavailable:{label:"Нет в наличии",className:"unavailable"}};
+function productStatus(id){return STATUS_META[productStatuses[id]]?productStatuses[id]:"available"}
+function statusMarkup(id,extraClass=""){const meta=STATUS_META[productStatus(id)];return `<div class="product-status ${meta.className} ${extraClass}">${meta.label}</div>`}
+async function loadProductStatuses(){try{const response=await fetch(STATUS_ENDPOINT,{cache:"no-store"});if(!response.ok)throw new Error("Product statuses unavailable");const data=await response.json();Object.assign(productStatuses,data.statuses||{});render()}catch(error){console.warn("Не удалось загрузить статусы товаров:",error.message)}}
 
 const products=[
  {id:"chicken",name:"Куриные котлеты с овощами",category:"Котлеты",price:70,unitPrice:7,unit:"10 штук",min:10,mode:"bulk",badge:"Хит продаж",desc:"Домашние куриные котлеты с овощами. Минимум 10 штук — 70 сомони.",image:"images/cutlets-chicken-veg.jpg",pos:"50% 50%"},
@@ -748,13 +763,14 @@ function render(){
   <article class="product" data-product="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}">
    <div class="prodimg">${image(p,true)}<span class="badge">${esc(p.badge)}</span></div>
    <div class="prodinfo">
+    ${statusMarkup(p.id)}
     <div class="catname">${esc(p.category)}</div>
     <h3 class="prodname">${esc(p.name)}</h3>
     <p class="desc">${esc(p.desc)}</p>
     <p class="ingredients-preview"><strong>Состав:</strong> ${esc(ingredientSummary(p))}</p>
     <div class="price-row">
      <div class="price">${money(p.price)}<small>${p.id==="classic"||p.id==="beef"?"за 10 штук":esc(p.unit)}</small></div>
-     <button class="plus" data-add="${p.id}" type="button" aria-label="Добавить ${esc(p.name)}">${icon("plus")}</button>
+     <button class="plus" data-add="${p.id}" type="button" ${productStatus(p.id)==="unavailable"?"disabled":""} aria-label="${productStatus(p.id)==="unavailable"?"Нет в наличии":"Добавить "+esc(p.name)}">${icon("plus")}</button>
     </div>
    </div>
   </article>
@@ -778,6 +794,7 @@ function openProduct(id){
   <div class="detailcopy">
    <div class="kicker">${esc(p.category)} · ${esc(p.badge)}</div>
    <h2>${esc(p.name)}</h2>
+   ${statusMarkup(p.id,"product-status-detail")}
    <p>${esc(p.desc)}</p>
    <div class="detail-extra">
     <strong>Состав продукта</strong>
@@ -791,12 +808,13 @@ function openProduct(id){
     <span id="dqty">${qtyText(p,detailQty)}</span>
     <button class="qtybtn" id="dplus" type="button" aria-label="Увеличить количество">${icon("plus")}</button>
    </div>
-   <button class="btn primary" id="dadd" type="button">Добавить в корзину · ${money(cost(p,detailQty))}</button>
+   <button class="btn primary" id="dadd" type="button" ${productStatus(id)==="unavailable"?"disabled":""}>${productStatus(id)==="unavailable"?"Временно нет в наличии":"Добавить в корзину · "+money(cost(p,detailQty))}</button>
   </div>`;
  openOverlay("productOverlay");
  $("dminus").onclick=()=>changeDetail(-1);
  $("dplus").onclick=()=>changeDetail(1);
  $("dadd").onclick=()=>{
+  if(productStatus(id)==="unavailable"){toast("Этот товар временно недоступен");return}
   cart[id]=detailQty>0?detailQty:p.min;
   updateCart();closeOverlay("productOverlay");openCart();toast("Корзина обновлена");
  };
@@ -815,6 +833,7 @@ function changeDetail(delta){
 function add(id){
  const p=products.find(item=>item.id===id);
  if(!p)return;
+ if(productStatus(id)==="unavailable"){toast("Этот товар временно недоступен");return}
  cart[id]=cart[id]?cart[id]+1:p.min;
  updateCart();toast(`Добавлено: ${qtyText(p,cart[id])}`);
 }
@@ -1140,6 +1159,7 @@ async function loadReviews(){
 $("year").textContent=new Date().getFullYear();
 showGuideSlide(0);
 render();
+loadProductStatuses();
 updateCart();
 loadReviews();
 </script>
