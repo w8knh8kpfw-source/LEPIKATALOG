@@ -12,6 +12,8 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
 const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || "review-photos";
+const PRODUCTS=[["chicken","Куриные котлеты с овощами"],["classic","Сырники классические"],["choco","Сырники шоколадные"],["rafaello","Сырники «Рафаэлло»"],["varenko","Сырники с варёнкой"],["beef","Говяжьи котлеты"],["meatp","Блинчики с мясом"],["curdp","Блинчики с творогом"],["condensed","Блинчики с варёной сгущёнкой"],["apple","Блинчики с яблоком и корицей"],["chopped","Рубленые куриные котлеты"],["meatballs","Фрикадельки"]].map(([id,name])=>({id,name}));
+const PRODUCT_STATUSES={available:"В наличии",preorder:"Готовим по предзаказу",unavailable:"Нет в наличии"};
 
 let polling = false;
 let offset = 0;
@@ -82,6 +84,10 @@ async function dbRequest(path, options = {}) {
 
   return body ? JSON.parse(body) : null;
 }
+
+async function getProductStatuses(){const rows=await dbRequest("product_statuses?select=product_id,status");return Object.fromEntries(rows.map(row=>[row.product_id,row.status]))}
+async function setProductStatus(productId,status){if(!PRODUCTS.some(p=>p.id===productId)||!Object.hasOwn(PRODUCT_STATUSES,status))throw new Error("Invalid product status");return dbRequest("product_statuses?on_conflict=product_id",{method:"POST",headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({product_id:productId,status,updated_at:new Date().toISOString()})})}
+async function showProductStatusMenu(chatId){const statuses=await getProductStatuses();for(const p of PRODUCTS){const status=statuses[p.id]||"available";await sendText(chatId,p.name,{reply_markup:{inline_keyboard:[Object.entries(PRODUCT_STATUSES).map(([key,label])=>({text:(status===key?"✓ ":"")+label,callback_data:`stock:${p.id}:${key}`}))]}})}}
 
 async function getReviews() {
   return dbRequest(
@@ -204,7 +210,7 @@ async function showReviews(chatId) {
   if (!reviews.length) {
     return sendText(chatId, "Пока отзывов нет.", {
       reply_markup: {
-        keyboard: [[{ text: "Отзывы" }]],
+        keyboard: [[{ text: "Наличие товаров" }], [{ text: "Отзывы" }]],
         resize_keyboard: true
       }
     });
@@ -257,20 +263,22 @@ async function handleUpdate(update) {
     if (text === "/start") {
       return sendText(
         chatId,
-        "LEPÍ — управление отзывами.\n\n" +
-        "Отправь фотографию с подписью:\n" +
+        "LEPÍ — панель управления.\n\n" +
+        "Для изменения наличия нажми «Наличие товаров».\n" +
+        "Для работы с отзывами отправь фотографию с подписью:\n" +
         "первая строка — имя клиента\n" +
         "вторая и следующие строки — текст отзыва.\n\n" +
         "Нажми «Отзывы», чтобы посмотреть и удалить отзывы.",
         {
           reply_markup: {
-            keyboard: [[{ text: "Отзывы" }]],
+            keyboard: [[{ text: "Наличие товаров" }], [{ text: "Отзывы" }]],
             resize_keyboard: true
           }
         }
       );
     }
 
+    if(text==="Наличие товаров"||text==="/stock"){try{return await showProductStatusMenu(chatId)}catch(error){console.error("Could not show product statuses:",error.message);return sendText(chatId,"Не удалось загрузить наличие. Проверь таблицу product_statuses в Supabase.")}}
     if (text === "Отзывы" || text === "/reviews") {
       try {
         return await showReviews(chatId);
@@ -345,6 +353,8 @@ async function handleUpdate(update) {
     });
   }
 
+  const stockMatch=/^stock:([a-z0-9_-]+):(available|preorder|unavailable)$/.exec(callback.data||"");
+  if(stockMatch){const [,productId,status]=stockMatch;try{await setProductStatus(productId,status);const p=PRODUCTS.find(item=>item.id===productId);const label=PRODUCT_STATUSES[status];await telegram("answerCallbackQuery",{callback_query_id:callback.id,text:"Обновлено: "+label});await telegram("editMessageText",{chat_id:chatId,message_id:callback.message.message_id,text:p.name+"\n\nСтатус: "+label,reply_markup:{inline_keyboard:[Object.entries(PRODUCT_STATUSES).map(([key,value])=>({text:(status===key?"✓ ":"")+value,callback_data:`stock:${productId}:${key}`}))]}})}catch(error){console.error("Could not update product status:",error.message);await telegram("answerCallbackQuery",{callback_query_id:callback.id,text:"Не удалось обновить. Проверь таблицу product_statuses в Supabase.",show_alert:true})}return}
   const match = /^del:(\d+)$/.exec(callback.data || "");
 
   if (!match) {
@@ -467,7 +477,9 @@ const server = http.createServer(async (req, res) => {
 
   const pathname = new URL(req.url, "http://localhost").pathname;
 
-if (req.method === "GET" && pathname === "/api/reviews") {
+if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=await getProductStatuses();res.writeHead(200,{"Cache-Control":"no-store"});return res.end(JSON.stringify({statuses}))}catch(error){console.error("Could not load product statuses:",error.message);res.writeHead(503);return res.end(JSON.stringify({error:"Product statuses unavailable"}))}}
+
+  if (req.method === "GET" && pathname === "/api/reviews") {
     try {
       const reviews = await getReviews();
 
