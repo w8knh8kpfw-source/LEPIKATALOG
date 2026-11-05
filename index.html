@@ -240,7 +240,18 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 .footlinks{display:flex;gap:15px;flex-wrap:wrap;font-size:11px;color:#74796c}
 .version{max-width:1400px;margin:22px auto 0;text-align:center;font-size:10px;letter-spacing:.08em;color:var(--muted);opacity:.8}
 
-/* Окна и корзина */
+
+/* Согласие на обработку персональных данных */
+.privacy-consent{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;margin:0 0 12px;border:1px solid #dce3d4;border-radius:14px;background:#ffffff9c;font-size:11px;line-height:1.65;color:#69715f;transition:border-color .2s,background .2s,transform .2s}
+.privacy-consent input{width:17px;height:17px;flex:0 0 17px;margin:1px 0 0;accent-color:var(--green)}
+.privacy-consent a{color:var(--deep);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.privacy-consent.pulse{animation:privacyPulse .65s ease}
+@keyframes privacyPulse{0%,100%{background:#ffffff9c;border-color:#dce3d4;transform:scale(1)}35%,70%{background:#e9efdf;border-color:var(--green);transform:scale(1.012)}}
+.privacy-hint{display:none;margin:-4px 0 12px 27px;color:#8b6b43;font-size:10px;line-height:1.5}
+.privacy-hint.show{display:block}
+#checkoutBtn[aria-disabled="true"]{background:#c9cec2;color:#fff;box-shadow:none;cursor:pointer;transform:none}
+#checkoutBtn[aria-disabled="false"]{background:linear-gradient(135deg,#7d916f,#4c6246)}
+
 .overlay{position:fixed;inset:0;z-index:70;background:#283022aa;display:none;padding:15px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .overlay.open{display:flex}
 .modal{position:relative;width:min(790px,100%);margin:auto;background:#f8f7f0;border:1px solid white;border-radius:26px;box-shadow:0 30px 90px #20271c3b}
@@ -816,7 +827,7 @@ function items(){
 function sum(){return items().reduce((total,p)=>total+p.total,0)}
 function count(){return items().reduce((total,p)=>total+p.q,0)}
 
-function updateCart(){
+let privacyConsent=false;\n\nfunction updateCart(){
  $("cartCount").textContent=count();
  $("mobileTotal").textContent=money(sum());
  const list=items();
@@ -843,8 +854,17 @@ function updateCart(){
  $("cartFoot").innerHTML=`
   <div class="total"><span>Товары · ${count()} шт./пачек</span><strong>${money(sum())}</strong></div>
   <p class="deliverywarn">Доставка оплачивается отдельно. Её стоимость уточним при подтверждении заказа.</p>
-  <button class="btn primary" id="checkoutBtn" type="button">Оформить заказ ${icon("arrow")}</button>`;
- $("checkoutBtn").onclick=checkout;
+  <label class="privacy-consent" id="privacyConsentBox" for="privacyConsent">
+   <input id="privacyConsent" type="checkbox" ${privacyConsent?"checked":""}>
+   <span>Я даю согласие на обработку персональных данных в целях оформления и доставки заказа. <a href="privacy.html" target="_blank" rel="noopener">Политика конфиденциальности</a>.</span>
+  </label>
+  <p class="privacy-hint" id="privacyHint">Чтобы оформить заказ, необходимо дать согласие на обработку персональных данных.</p>
+  <button class="btn primary" id="checkoutBtn" type="button" aria-disabled="${privacyConsent?"false":"true"}">Оформить заказ ${icon("arrow")}</button>`;
+ $("privacyConsent").onchange=(event)=>{privacyConsent=event.target.checked;$("checkoutBtn").setAttribute("aria-disabled",String(!privacyConsent));$("privacyHint").classList.remove("show");$("privacyConsentBox").classList.remove("pulse")};
+ $("checkoutBtn").onclick=()=>{
+  if(!privacyConsent){$("privacyHint").classList.add("show");const box=$("privacyConsentBox");box.classList.remove("pulse");void box.offsetWidth;box.classList.add("pulse");return}
+  checkout();
+ };
 }
 
 function openCart(){
