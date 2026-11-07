@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f2e9"><meta name="description" content="Отслеживание заказа LEPÍ.">
+<title>Мой заказ — LEPÍ</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f2e9;--ink:#30372e;--muted:#85897d;--green:#667b5b;--deep:#43583e;--line:#dfe5d8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% 8%,#dfe6d1a8,transparent 32%),radial-gradient(ellipse at 95% 42%,#efe0c5a0,transparent 32%),var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}
+.top{padding:22px 5%;border-bottom:1px solid #ffffffa6;background:#f5f2e9d9}.nav{width:min(900px,100%);margin:auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font:600 35px/1 "Cormorant Garamond",serif;letter-spacing:.16em;color:var(--ink);text-decoration:none}.logo span{color:var(--green)}.back{font-size:12px;font-weight:600;color:var(--deep);text-decoration:none}
+main{width:min(680px,90%);margin:48px auto 70px}.kicker{text-transform:uppercase;letter-spacing:.16em;font-size:10px;color:var(--green);font-weight:700}
+h1{font:500 clamp(43px,8vw,65px)/.95 "Cormorant Garamond",serif;letter-spacing:-.03em;margin:15px 0 8px}.sub{font-size:12px;line-height:1.8;color:var(--muted);margin:0 0 25px}
+.paper{padding:clamp(20px,5vw,34px);border:1px solid white;border-radius:27px;background:#ffffff91;box-shadow:inset 0 1px #fff,0 18px 50px #35432a0c}
+.order-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.order-no{font-size:12px;font-weight:700;color:var(--deep)}.updated{font-size:10px;color:var(--muted)}
+.status{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;background:#e6eddf;color:#456642;font-size:11px;font-weight:700;margin:20px 0}
+.status:before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:3px 0 25px}.timeline span{height:5px;border-radius:9px;background:#e1e5db}.timeline span.done{background:var(--green)}
+.section-title{font:500 29px/1.1 "Cormorant Garamond",serif;margin:25px 0 12px}.items{display:grid;gap:9px}
+.item{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:13px;background:#f1f3eb;font-size:11px;line-height:1.6}.item b{white-space:nowrap}
+.total{display:flex;justify-content:space-between;gap:12px;padding-top:15px;margin-top:12px;border-top:1px solid var(--line);font-size:13px;font-weight:700}
+.info{font-size:10px;line-height:1.8;color:var(--muted);margin:18px 0 0}.error{padding:22px;text-align:center;border:1px solid white;border-radius:22px;background:#ffffff91;color:var(--muted);font-size:12px;line-height:1.8}
+.error strong{display:block;font:500 29px "Cormorant Garamond",serif;color:var(--ink);margin-bottom:8px}
+footer{text-align:center;padding:22px;color:var(--muted);font-size:10px}@media(max-width:480px){.top{padding:18px 5%}.back{font-size:11px}main{margin:35px auto 50px}.paper{border-radius:22px}}
+</style></head><body>
+<header class="top"><nav class="nav"><a class="logo" href="index.html">LEP<span>Í</span></a><a class="back" href="index.html">← Вернуться в каталог</a></nav></header>
+<main><div class="kicker">LEPÍ · информация о заказе</div><h1>Ваш заказ</h1><p class="sub">Здесь можно посмотреть текущий статус. Страница обновляется автоматически.</p>
+<div id="content" class="error"><strong>Загружаем заказ…</strong>Пожалуйста, подождите.</div></main><footer>LEPÍ · вкус домашнего уюта</footer>
+<script>
+"use strict";
+const API="https://lepi-orders.onrender.com/api/track",token=new URLSearchParams(location.search).get("token")||"";
+const labels={new:"Заказ получен",accepted:"Заказ принят",preparing:"Готовим ваш заказ",ready:"Заказ готов",courier:"Передан курьеру",completed:"Заказ завершён",cancelled:"Заказ отменён"};
+const steps=["new","accepted","preparing","ready","courier","completed"];
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function date(v){try{return new Intl.DateTimeFormat("ru-RU",{dateStyle:"medium",timeStyle:"short"}).format(new Date(v))}catch{return ""}}
+async function load(){
+ const el=document.getElementById("content");
+ if(!/^[a-f0-9]{48}$/.test(token)){el.innerHTML="<strong>Ссылка недействительна</strong>Проверьте, что вы открыли ссылку из сообщения после оформления заказа.";return}
+ try{
+  const r=await fetch(API+"?token="+encodeURIComponent(token),{cache:"no-store"});
+  if(r.status===404){el.innerHTML="<strong>Заказ не найден</strong>Возможно, ссылка указана неверно.";return}
+  if(!r.ok)throw new Error("Tracking unavailable");
+  const o=(await r.json()).order||{},step=steps.indexOf(o.status),cancelled=o.status==="cancelled",items=Array.isArray(o.items)?o.items:[];
+  el.className="paper";
+  el.innerHTML='<div class="order-meta"><div class="order-no">№ '+esc(o.orderNumber)+'</div><div class="updated">Обновлено: '+esc(date(o.updatedAt))+'</div></div>'+
+   '<div class="status" '+(cancelled?'style="background:#f3e4e1;color:#9b514a"':'')+'>'+esc(labels[o.status]||"Статус обновляется")+'</div>'+
+   '<div class="timeline">'+steps.slice(0,5).map((x,i)=>'<span class="'+(!cancelled&&step>=i?"done":"")+'"></span>').join("")+'</div>'+
+   '<div class="section-title">Состав заказа</div><div class="items">'+items.map(x=>'<div class="item"><span>'+esc(x.name||x.title||"Товар")+' · '+esc(x.quantity||1)+' шт.</span><b>'+esc(x.price??"")+' сомони</b></div>').join("")+'</div>'+
+   '<div class="total"><span>Итого за товары</span><span>'+esc(o.total)+'</span></div>'+
+   '<p class="info">Заказ оформлен: '+esc(date(o.createdAt))+'<br>Доставка оплачивается отдельно. Для уточнения деталей с вами свяжется представитель LEPÍ. Телефон и адрес на этой странице не отображаются.</p>';
+ }catch(e){el.className="error";el.innerHTML="<strong>Не удалось загрузить заказ</strong>Проверьте интернет и обновите страницу."}
+}
+load();setInterval(load,20000);
+</script></body></html>
