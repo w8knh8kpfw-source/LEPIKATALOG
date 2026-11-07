@@ -1,94 +1,166 @@
 <!doctype html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f5f2e9"><meta name="description" content="Отслеживание заказа LEPÍ.">
-<title>Мой заказ — LEPÍ</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f3ec">
+<meta name="description" content="Отслеживание заказа LEPÍ.">
+<title>Ваш заказ — LEPÍ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5f2e9;--ink:#30372e;--muted:#85897d;--green:#667b5b;--deep:#43583e;--line:#dfe5d8}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% 8%,#dfe6d1a8,transparent 32%),radial-gradient(ellipse at 95% 42%,#efe0c5a0,transparent 32%),var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}
-.top{padding:22px 5%;border-bottom:1px solid #ffffffa6;background:#f5f2e9d9}.nav{width:min(900px,100%);margin:auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.logo{font:600 35px/1 "Cormorant Garamond",serif;letter-spacing:.16em;color:var(--ink);text-decoration:none}.logo span{color:var(--green)}.back{font-size:12px;font-weight:600;color:var(--deep);text-decoration:none}
-main{width:min(680px,90%);margin:48px auto 70px}.kicker{text-transform:uppercase;letter-spacing:.16em;font-size:10px;color:var(--green);font-weight:700}
-h1{font:500 clamp(43px,8vw,65px)/.95 "Cormorant Garamond",serif;letter-spacing:-.03em;margin:15px 0 8px}.sub{font-size:12px;line-height:1.8;color:var(--muted);margin:0 0 25px}
-.paper{padding:clamp(20px,5vw,34px);border:1px solid white;border-radius:27px;background:#ffffff91;box-shadow:inset 0 1px #fff,0 18px 50px #35432a0c}
-.order-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--line)}
-.order-no{font-size:12px;font-weight:700;color:var(--deep)}.updated{font-size:10px;color:var(--muted)}
-.status{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;background:#e6eddf;color:#456642;font-size:11px;font-weight:700;margin:20px 0}
-.status:before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
-.progress-head{display:flex;justify-content:space-between;align-items:center;margin:23px 0 16px}
-.progress-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.progress-count{font-size:10px;color:var(--green);font-weight:700}
-.timeline{display:grid;gap:0;margin:0 0 28px}
-.stage{display:grid;grid-template-columns:42px 1fr;gap:13px;position:relative;min-height:66px}
-.stage:not(:last-child):before{content:"";position:absolute;left:19px;top:40px;bottom:-1px;width:2px;border-radius:3px;background:#e5e8df}
-.stage.done:not(:last-child):before{background:linear-gradient(var(--green),#a9b99c)}
-.stage-icon{width:44px;height:44px;border:1px solid #ffffffd9;border-radius:16px;background:linear-gradient(145deg,#ffffffc9,#e9ede5a8);color:#a0a99a;display:grid;place-items:center;position:relative;z-index:1;overflow:hidden;backdrop-filter:blur(18px) saturate(1.45);-webkit-backdrop-filter:blur(18px) saturate(1.45);box-shadow:inset 0 1.5px 1px #fff,inset 0 -1px 1px #dfe5d9,0 5px 13px #35432a0a;transition:background .3s,border-color .3s,box-shadow .3s,color .3s}
-.stage-icon:before{content:"";position:absolute;inset:1px 2px 48%;border-radius:14px 14px 50% 50%;background:linear-gradient(180deg,#ffffffc9,#ffffff05);pointer-events:none}
-.stage-icon:after{content:"";position:absolute;width:22px;height:22px;right:-10px;bottom:-13px;border-radius:50%;background:#ffffff80;filter:blur(7px);pointer-events:none}
-.stage-icon svg{width:23px;height:23px;display:block;position:relative;z-index:1;filter:drop-shadow(0 1px 1px #ffffff80)}
-.stage-icon svg .icon-detail{opacity:.55}
-.stage-copy{padding:5px 0 18px}
-.stage-title{font-size:12px;font-weight:600;color:#9a9e93;line-height:1.4}
-.stage-note{font-size:10px;color:#a8aca2;margin-top:4px;line-height:1.5}
-.stage.done .stage-icon{background:linear-gradient(145deg,#f5fff0ed,#cfe2c4d9);border-color:#ffffff;color:#477344;box-shadow:inset 0 1.5px 1px #ffffff, inset 0 -1px 2px #b8d1ad,0 5px 15px #527b4520}
-.stage.done .stage-title{color:var(--deep)}
-.stage.done .stage-note{color:#89917f}
-.stage.current .stage-icon{background:linear-gradient(145deg,#91b783f2,#496b43f2 72%);border-color:#ffffff;color:#fff;box-shadow:inset 0 1.5px 1px #ffffffa8,inset 0 -2px 3px #29432980,0 0 0 5px #e6ecdf,0 8px 20px #40543a35}
-.stage.current .stage-icon:before{background:linear-gradient(180deg,#ffffffa8,#ffffff08)}
-.stage.current .stage-icon svg{filter:drop-shadow(0 1px 2px #28432970)}
-.stage.current .stage-title{color:var(--deep);font-weight:700}
-.stage.current .stage-note{color:var(--green)}
-.cancelled-panel{display:flex;gap:12px;align-items:flex-start;padding:15px;border-radius:15px;background:#f5e9e5;color:#98584f;font-size:11px;line-height:1.6;margin:8px 0 20px}
-.cancelled-panel svg{width:20px;height:20px;flex:none}
-@media(min-width:560px){.stage{min-height:70px}.stage-copy{padding-top:6px}}
-.section-title{font:500 29px/1.1 "Cormorant Garamond",serif;margin:25px 0 12px}.items{display:grid;gap:9px}
-.item{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:13px;background:#f1f3eb;font-size:11px;line-height:1.6}.item b{white-space:nowrap}
-.total{display:flex;justify-content:space-between;gap:12px;padding-top:15px;margin-top:12px;border-top:1px solid var(--line);font-size:13px;font-weight:700}
-.info{font-size:10px;line-height:1.8;color:var(--muted);margin:18px 0 0}.error{padding:22px;text-align:center;border:1px solid white;border-radius:22px;background:#ffffff91;color:var(--muted);font-size:12px;line-height:1.8}
-.error strong{display:block;font:500 29px "Cormorant Garamond",serif;color:var(--ink);margin-bottom:8px}
-footer{text-align:center;padding:22px;color:var(--muted);font-size:10px}@media(max-width:480px){.top{padding:18px 5%}.back{font-size:11px}main{margin:35px auto 50px}.paper{border-radius:22px}}
-</style></head><body>
+:root{--paper:#f5f3ec;--white:#fffefa;--ink:#252b24;--muted:#85897f;--green:#627653;--green-dark:#40543a;--line:#e7e8df;--soft:#edf0e8;--red:#9d554b}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--paper)}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"DM Sans",sans-serif;background:var(--paper);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}button{font:inherit}
+.top{height:76px;border-bottom:1px solid #e9e8df;background:rgba(255,254,250,.72)}
+.nav{width:min(1040px,90%);height:100%;margin:auto;display:flex;align-items:center;justify-content:space-between}
+.logo{font:600 34px/1 "Playfair Display",serif;letter-spacing:.12em}.logo span{color:var(--green)}
+.back{font-size:12px;color:#62695d;transition:color .2s}.back:hover{color:var(--green-dark)}
+main{width:min(1040px,90%);margin:54px auto 80px}
+.eyebrow{font-size:10px;letter-spacing:.19em;text-transform:uppercase;font-weight:700;color:var(--green)}
+.page-title{font:400 clamp(43px,7vw,68px)/1.04 "Playfair Display",serif;letter-spacing:-.045em;margin:13px 0 10px}
+.intro{font-size:13px;line-height:1.8;color:var(--muted);margin:0;max-width:540px}
+.layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.8fr);gap:20px;align-items:start;margin-top:34px}
+.panel{background:var(--white);border:1px solid #e9e8df;border-radius:5px;box-shadow:0 12px 36px #3e49300a}
+.progress-panel{padding:clamp(22px,4vw,36px)}
+.order-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+.order-label{font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);margin-bottom:7px}
+.order-number{font-size:14px;font-weight:700;letter-spacing:.035em}
+.copy{border:0;border-bottom:1px solid #cbd2c3;background:none;color:var(--green-dark);font-size:10px;font-weight:700;padding:5px 0;cursor:pointer}
+.copy:hover{border-color:var(--green-dark)}
+.current{padding:26px 0 24px}
+.current-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.current-title{font:400 clamp(26px,4vw,36px)/1.15 "Playfair Display",serif;margin:0 0 8px}
+.current-note{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
+.progress-meta{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:5px 0 10px}
+.progress-caption{font-size:10px;color:#777d71}
+.progress-fraction{font-size:10px;font-weight:700;color:var(--green-dark);font-variant-numeric:tabular-nums}
+.bar{height:3px;background:#e9ebe4;overflow:hidden}
+.bar-fill{height:100%;background:var(--green);width:0;transition:width .5s ease}
+.steps{list-style:none;padding:26px 0 0;margin:0;display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:0}
+.step{position:relative;display:grid;grid-template-columns:29px 1fr;gap:10px;min-height:78px;padding:0 0 20px}
+.step:nth-child(odd):after{content:"";position:absolute;left:13px;top:28px;bottom:0;width:1px;background:#e7e9e2}
+.step:last-child:after{display:none}
+.step-marker{position:relative;z-index:1;width:27px;height:27px;border:1px solid #dfe2d9;border-radius:50%;background:var(--white);display:grid;place-items:center;color:#a5aa9e;font-size:10px;font-weight:600;font-variant-numeric:tabular-nums}
+.step.done .step-marker{background:var(--green);border-color:var(--green);color:white}
+.step.current .step-marker{border:1.5px solid var(--green);color:var(--green-dark);box-shadow:0 0 0 4px #edf1e8}
+.step-name{font-size:11px;line-height:1.45;font-weight:600;color:#9a9e94;padding-top:5px}
+.step.done .step-name,.step.current .step-name{color:var(--ink)}
+.step-desc{font-size:9px;line-height:1.5;color:#a1a59b;margin-top:5px}
+.step.current .step-desc{color:var(--green)}
+.side{display:grid;gap:14px}
+.side-panel{padding:23px}
+.side-title{font:400 23px/1.2 "Playfair Display",serif;margin:0 0 17px}
+.item-list{display:grid;gap:13px}
+.item{display:flex;justify-content:space-between;gap:12px;font-size:11px;line-height:1.55}
+.item-name{color:#555d50}.item-price{font-weight:600;white-space:nowrap}
+.total{border-top:1px solid var(--line);margin-top:17px;padding-top:16px;display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:700}
+.meta-list{display:grid;gap:13px}
+.meta-row{display:flex;justify-content:space-between;gap:15px;font-size:10px;line-height:1.5}
+.meta-row span:first-child{color:var(--muted)}.meta-row span:last-child{text-align:right;font-weight:600}
+.refresh-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;padding-top:15px;border-top:1px solid var(--line)}
+.refresh-time{font-size:9px;color:var(--muted);line-height:1.6}
+.refresh{border:1px solid #dfe4d9;background:#f8f9f5;color:var(--green-dark);border-radius:3px;padding:9px 12px;font-size:10px;font-weight:700;cursor:pointer;transition:background .2s}
+.refresh:hover{background:#edf1e8}.refresh:disabled{opacity:.55;cursor:wait}
+.notice{font-size:10px;line-height:1.8;color:var(--muted);padding:16px 18px;border-left:2px solid #d5ddce;background:#f0f2eb}
+.cancelled{padding:17px 18px;background:#f7eeeb;border-left:2px solid #bd8177;color:var(--red);font-size:11px;line-height:1.7;margin-top:16px}
+.error{background:var(--white);border:1px solid #e9e8df;padding:34px;text-align:center;max-width:540px;margin:34px auto;border-radius:5px}
+.error h2{font:400 29px "Playfair Display",serif;margin:0 0 10px}.error p{font-size:12px;line-height:1.8;color:var(--muted);margin:0}
+footer{padding:24px 5%;border-top:1px solid #e9e8df;text-align:center;font-size:9px;letter-spacing:.12em;color:#999c91}
+@media(max-width:760px){main{margin:39px auto 58px}.layout{grid-template-columns:1fr;gap:14px}.side{grid-template-columns:1fr 1fr}.side-panel{padding:19px}.notice{grid-column:1/-1}}
+@media(max-width:520px){.top{height:66px}.logo{font-size:30px}.back{font-size:10px}main{width:90%;margin-top:34px}.layout{margin-top:25px}.progress-panel{padding:21px 18px}.steps{grid-template-columns:1fr;row-gap:0}.step{min-height:66px;padding-bottom:13px}.step:nth-child(odd):after{display:block}.step:last-child:after{display:none}.side{grid-template-columns:1fr}.side-panel{padding:21px}.current{padding:23px 0 19px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
 <header class="top"><nav class="nav"><a class="logo" href="index.html">LEP<span>Í</span></a><a class="back" href="index.html">← Вернуться в каталог</a></nav></header>
-<main><div class="kicker">LEPÍ · информация о заказе</div><h1>Ваш заказ</h1><p class="sub">Здесь можно посмотреть текущий статус. Страница обновляется автоматически.</p>
-<div id="content" class="error"><strong>Загружаем заказ…</strong>Пожалуйста, подождите.</div></main><footer>LEPÍ · вкус домашнего уюта</footer>
+<main>
+<div class="eyebrow">LEPÍ · сопровождение заказа</div>
+<h1 class="page-title">Ваш заказ.</h1>
+<p class="intro">Вся информация о заказе собрана здесь. Мы будем обновлять этапы по мере его приготовления и доставки.</p>
+<div id="content" class="error"><h2>Загружаем заказ</h2><p>Пожалуйста, подождите несколько секунд.</p></div>
+</main>
+<footer>LEPÍ &nbsp;·&nbsp; ВКУС ДОМАШНЕГО УЮТА</footer>
 <script>
 "use strict";
-const API="https://lepi-orders.onrender.com/api/track",token=new URLSearchParams(location.search).get("token")||"";
-const labels={new:"Заказ получен",accepted:"Принят в работу",preparing:"Готовим ваш заказ",ready:"Заказ готов",courier:"Передан курьеру",completed:"Заказ завершён",cancelled:"Заказ отменён"};
+const API="https://lepi-orders.onrender.com/api/track";
+const token=new URLSearchParams(location.search).get("token")||"";
 const stages=[
- {key:"new",title:"Заказ получен",note:"Мы получили ваш заказ",icon:'<path d="M7 3.8h8l3 3v13.4H7z"/><path d="M15 3.8v3.5h3M10 11h5M10 14.5h5M10 18h3"/>'},
- {key:"accepted",title:"Подтверждение заказа",note:"Заказ принят командой LEPÍ",icon:'<path d="m5 12.5 4.2 4.2L19 7"/><circle cx="12" cy="12" r="9"/>'},
- {key:"preparing",title:"Приготовление",note:"Ваш заказ готовится",icon:'<path d="M4 11h16l-1.3 8H5.3z"/><path d="M7 8c-1.2-1.2 1.2-2 0-3M12 8c-1.2-1.2 1.2-2 0-3M17 8c-1.2-1.2 1.2-2 0-3"/>'},
- {key:"ready",title:"Заказ готов",note:"Всё собрано и подготовлено",icon:'<path d="M4 12.5 12 5l8 7.5v6.8H4z"/><path d="m8.5 13 2.3 2.3 4.8-5"/>'},
- {key:"courier",title:"Передан курьеру",note:"Заказ отправился к вам",icon:'<path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7.5" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/>'},
- {key:"completed",title:"Доставлен",note:"Заказ успешно завершён",icon:'<path d="m5 12.5 4.2 4.2L19 7"/><circle cx="12" cy="12" r="9"/>'}
+ {key:"new",title:"Заказ получен",desc:"Мы получили ваш заказ"},
+ {key:"accepted",title:"Подтверждение",desc:"Команда LEPÍ приняла заказ"},
+ {key:"preparing",title:"Приготовление",desc:"Мы готовим ваш заказ"},
+ {key:"ready",title:"Всё готово",desc:"Заказ собран и подготовлен"},
+ {key:"courier",title:"В пути",desc:"Заказ передан курьеру"},
+ {key:"completed",title:"Доставлен",desc:"Заказ успешно завершён"}
 ];
-function stageIcon(paths,index){const id="lepi-icon-"+index;return '<svg viewBox="0 0 24 24" fill="none" stroke="url(#'+id+')" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="currentColor"/><stop offset=".52" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity=".68"/></linearGradient></defs>'+paths+'</svg>'}
+const labels={new:"Заказ получен",accepted:"Принят в работу",preparing:"Готовим ваш заказ",ready:"Заказ готов",courier:"Передан курьеру",completed:"Заказ доставлен",cancelled:"Заказ отменён"};
+let lastOrder=null,loading=false;
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function date(v){try{return new Intl.DateTimeFormat("ru-RU",{dateStyle:"medium",timeStyle:"short"}).format(new Date(v))}catch{return ""}}
-async function load(){
+function date(v){if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":new Intl.DateTimeFormat("ru-RU",{dateStyle:"medium",timeStyle:"short"}).format(d)}
+function errorView(title,message){const el=document.getElementById("content");el.className="error";el.innerHTML="<h2>"+esc(title)+"</h2><p>"+esc(message)+"</p>"}
+function render(o){
+ lastOrder=o;
  const el=document.getElementById("content");
- if(!/^[a-f0-9]{48}$/.test(token)){el.innerHTML="<strong>Ссылка недействительна</strong>Проверьте, что вы открыли ссылку из сообщения после оформления заказа.";return}
- try{
-  const r=await fetch(API+"?token="+encodeURIComponent(token),{cache:"no-store"});
-  if(r.status===404){el.innerHTML="<strong>Заказ не найден</strong>Возможно, ссылка указана неверно.";return}
-  if(!r.ok)throw new Error("Tracking unavailable");
-  const o=(await r.json()).order||{},step=stages.findIndex(x=>x.key===o.status),cancelled=o.status==="cancelled",items=Array.isArray(o.items)?o.items:[];
-  const completedIndex=o.status==="completed"?stages.length-1:step;
-  const stageMarkup=stages.map((stage,i)=>{
-   const done=!cancelled&&i<completedIndex,current=!cancelled&&i===completedIndex;
-   return '<div class="stage '+(done?'done ': '')+(current?'current':'')+'"><div class="stage-icon">'+stageIcon(stage.icon,i)+'</div><div class="stage-copy"><div class="stage-title">'+stage.title+'</div><div class="stage-note">'+(current?'Текущий этап · ': '')+stage.note+'</div></div></div>';
-  }).join("");
-  const completedCount=cancelled?0:(o.status==="completed"?stages.length:Math.max(0,completedIndex));
-  el.className="paper";
-  el.innerHTML='<div class="order-meta"><div class="order-no">№ '+esc(o.orderNumber)+'</div><div class="updated">Обновлено: '+esc(date(o.updatedAt))+'</div></div>'+
-   '<div class="status" '+(cancelled?'style="background:#f3e4e1;color:#9b514a"':'')+'>'+esc(labels[o.status]||"Статус обновляется")+'</div>'+
-   (cancelled?'<div class="cancelled-panel">'+stageIcon('<path d="m8 8 8 8M16 8l-8 8"/><circle cx="12" cy="12" r="9"/>',99)+'<span>Этот заказ отменён. Если у вас есть вопросы, свяжитесь с командой LEPÍ.</span></div>':'<div class="progress-head"><span class="progress-label">Этапы заказа</span><span class="progress-count">'+completedCount+' / '+stages.length+' завершено</span></div><div class="timeline">'+stageMarkup+'</div>')+
-   '<div class="section-title">Состав заказа</div><div class="items">'+items.map(x=>'<div class="item"><span>'+esc(x.name||x.title||"Товар")+' · '+esc(x.quantity||1)+' шт.</span><b>'+esc(x.price??"")+(String(x.price??"").includes("сомони")?"":" сомони")+'</b></div>').join("")+'</div>'+
-   '<div class="total"><span>Итого за товары</span><span>'+esc(o.total)+'</span></div>'+
-   '<p class="info">Заказ оформлен: '+esc(date(o.createdAt))+'<br>Доставка оплачивается отдельно. Для уточнения деталей с вами свяжется представитель LEPÍ. Телефон и адрес на этой странице не отображаются.</p>';
- }catch(e){el.className="error";el.innerHTML="<strong>Не удалось загрузить заказ</strong>Проверьте интернет и обновите страницу."}
+ const status=o.status||"new",index=stages.findIndex(s=>s.key===status),cancelled=status==="cancelled";
+ const currentIndex=status==="completed"?5:Math.max(0,index);
+ const doneCount=cancelled?0:status==="completed"?6:Math.max(0,index);
+ const percent=cancelled?0:Math.round(doneCount/6*100);
+ const current=stages[currentIndex]||stages[0];
+ const items=Array.isArray(o.items)?o.items:[];
+ const steps=stages.map((s,i)=>{
+  const state=!cancelled&&i<currentIndex?"done":!cancelled&&i===currentIndex?"current":"";
+  return '<li class="step '+state+'"><span class="step-marker">'+(i<currentIndex&&!cancelled?"✓":String(i+1).padStart(2,"0"))+'</span><div><div class="step-name">'+s.title+'</div><div class="step-desc">'+s.desc+'</div></div></li>';
+ }).join("");
+ const itemRows=items.map(x=>{
+  const qty=Number(x.quantity)||1;
+  const price=x.price===undefined||x.price===null?"":String(x.price).includes("сомони")?String(x.price):String(x.price)+" сомони";
+  return '<div class="item"><span class="item-name">'+esc(x.name||x.title||"Товар")+' · '+qty+' шт.</span><span class="item-price">'+esc(price)+'</span></div>';
+ }).join("");
+ const total=String(o.total??"—");
+ el.className="layout";
+ el.innerHTML=
+ '<section class="panel progress-panel">'+
+  '<div class="order-head"><div><div class="order-label">Номер заказа</div><div class="order-number" id="order-number">'+esc(o.orderNumber||"—")+'</div></div><button class="copy" id="copy-order" type="button">Скопировать номер</button></div>'+
+  '<div class="current"><div class="current-label">Текущий статус</div><h2 class="current-title">'+esc(labels[status]||"Статус обновляется")+'</h2><p class="current-note">'+(cancelled?"Этот заказ отменён. Если у вас есть вопросы, свяжитесь с командой LEPÍ.":esc(current.desc))+'</p></div>'+
+  (cancelled?'<div class="cancelled">Статусы этого заказа больше не обновляются. По любым вопросам обратитесь к команде LEPÍ.</div>':
+   '<div class="progress-meta"><span class="progress-caption">Путь вашего заказа</span><span class="progress-fraction">'+doneCount+' из 6 этапов</span></div><div class="bar"><div class="bar-fill" style="width:'+percent+'%"></div></div><ol class="steps">'+steps+'</ol>')+
+ '</section>'+
+ '<aside class="side">'+
+  '<section class="panel side-panel"><h2 class="side-title">В заказе</h2><div class="item-list">'+(itemRows||'<div class="item"><span class="item-name">Состав заказа не указан</span></div>')+'</div><div class="total"><span>Итого за товары</span><span>'+esc(total)+'</span></div></section>'+
+  '<section class="panel side-panel"><h2 class="side-title">Детали</h2><div class="meta-list"><div class="meta-row"><span>Создан</span><span>'+esc(date(o.createdAt))+'</span></div><div class="meta-row"><span>Последнее обновление</span><span id="updated-at">'+esc(date(o.updatedAt))+'</span></div><div class="meta-row"><span>Номер</span><span>'+esc(o.orderNumber||"—")+'</span></div></div><div class="refresh-row"><span class="refresh-time" id="refresh-time">Обновление автоматически<br>каждые 20 секунд</span><button class="refresh" id="refresh" type="button">Обновить</button></div></section>'+
+  '<div class="notice">Мы не показываем на этой странице ваш номер телефона, адрес или комментарий к заказу.</div>'+
+ '</aside>';
+ document.getElementById("copy-order").addEventListener("click",async()=>{
+  const b=document.getElementById("copy-order");
+  try{await navigator.clipboard.writeText(String(o.orderNumber||""));b.textContent="Скопировано";}
+  catch{b.textContent="Не удалось скопировать";}
+  setTimeout(()=>{if(b.isConnected)b.textContent="Скопировать номер"},1800);
+ });
+ document.getElementById("refresh").addEventListener("click",()=>load(true));
 }
-load();setInterval(load,20000);
-</script></body></html>
+async function load(manual=false){
+ if(loading)return;loading=true;
+ const button=document.getElementById("refresh");if(button){button.disabled=true;button.textContent="Обновляем…"}
+ try{
+  if(!/^[a-f0-9]{48}$/.test(token)){errorView("Ссылка недействительна","Откройте ссылку для отслеживания из сообщения после оформления заказа.");return}
+  const r=await fetch(API+"?token="+encodeURIComponent(token),{cache:"no-store"});
+  if(r.status===404){errorView("Заказ не найден","Проверьте ссылку или обратитесь к команде LEPÍ.");return}
+  if(!r.ok)throw new Error("Request failed");
+  const data=await r.json();if(!data.order)throw new Error("Missing order");
+  render(data.order);
+  const time=document.getElementById("refresh-time");
+  if(time)time.textContent=manual?"Только что обновлено":"Обновление автоматически · каждые 20 секунд";
+ }catch(e){
+  if(lastOrder){const time=document.getElementById("refresh-time");if(time)time.textContent="Не удалось обновить · повторим позже"}
+  else errorView("Не удалось загрузить заказ","Проверьте подключение к интернету и попробуйте ещё раз.");
+ }finally{
+  loading=false;const b=document.getElementById("refresh");if(b){b.disabled=false;b.textContent="Обновить"}
+ }
+}
+load();setInterval(()=>load(false),20000);
+</script>
+</body>
+</html>
