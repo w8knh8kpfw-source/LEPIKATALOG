@@ -46,7 +46,7 @@ async function load(){
   el.innerHTML='<div class="order-meta"><div class="order-no">№ '+esc(o.orderNumber)+'</div><div class="updated">Обновлено: '+esc(date(o.updatedAt))+'</div></div>'+
    '<div class="status" '+(cancelled?'style="background:#f3e4e1;color:#9b514a"':'')+'>'+esc(labels[o.status]||"Статус обновляется")+'</div>'+
    '<div class="timeline">'+steps.slice(0,5).map((x,i)=>'<span class="'+(!cancelled&&step>=i?"done":"")+'"></span>').join("")+'</div>'+
-   '<div class="section-title">Состав заказа</div><div class="items">'+items.map(x=>'<div class="item"><span>'+esc(x.name||x.title||"Товар")+' · '+esc(x.quantity||1)+' шт.</span><b>'+esc(x.price??"")+' сомони</b></div>').join("")+'</div>'+
+   '<div class="section-title">Состав заказа</div><div class="items">'+items.map(x=>'<div class="item"><span>'+esc(x.name||x.title||"Товар")+' · '+esc(x.quantity||1)+' шт.</span><b>'+esc(x.price??"")+(String(x.price??"").includes("сомони")?"":" сомони")+'</b></div>').join("")+'</div>'+
    '<div class="total"><span>Итого за товары</span><span>'+esc(o.total)+'</span></div>'+
    '<p class="info">Заказ оформлен: '+esc(date(o.createdAt))+'<br>Доставка оплачивается отдельно. Для уточнения деталей с вами свяжется представитель LEPÍ. Телефон и адрес на этой странице не отображаются.</p>';
  }catch(e){el.className="error";el.innerHTML="<strong>Не удалось загрузить заказ</strong>Проверьте интернет и обновите страницу."}
