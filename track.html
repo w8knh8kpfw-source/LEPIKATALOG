@@ -16,7 +16,27 @@ h1{font:500 clamp(43px,8vw,65px)/.95 "Cormorant Garamond",serif;letter-spacing:-
 .order-no{font-size:12px;font-weight:700;color:var(--deep)}.updated{font-size:10px;color:var(--muted)}
 .status{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border-radius:30px;background:#e6eddf;color:#456642;font-size:11px;font-weight:700;margin:20px 0}
 .status:before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
-.timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:3px 0 25px}.timeline span{height:5px;border-radius:9px;background:#e1e5db}.timeline span.done{background:var(--green)}
+.progress-head{display:flex;justify-content:space-between;align-items:center;margin:23px 0 16px}
+.progress-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.progress-count{font-size:10px;color:var(--green);font-weight:700}
+.timeline{display:grid;gap:0;margin:0 0 28px}
+.stage{display:grid;grid-template-columns:42px 1fr;gap:13px;position:relative;min-height:66px}
+.stage:not(:last-child):before{content:"";position:absolute;left:19px;top:40px;bottom:-1px;width:2px;border-radius:3px;background:#e5e8df}
+.stage.done:not(:last-child):before{background:linear-gradient(var(--green),#a9b99c)}
+.stage-icon{width:40px;height:40px;border:1px solid #e3e6de;border-radius:50%;background:#f0f1ec;color:#a4a99e;display:grid;place-items:center;position:relative;z-index:1;transition:all .25s}
+.stage-icon svg{width:18px;height:18px;display:block}
+.stage-copy{padding:5px 0 18px}
+.stage-title{font-size:12px;font-weight:600;color:#9a9e93;line-height:1.4}
+.stage-note{font-size:10px;color:#a8aca2;margin-top:4px;line-height:1.5}
+.stage.done .stage-icon{background:#e5eddf;border-color:#d3dfca;color:#4f7047;box-shadow:0 3px 10px #506b4212}
+.stage.done .stage-title{color:var(--deep)}
+.stage.done .stage-note{color:#89917f}
+.stage.current .stage-icon{background:var(--deep);border-color:var(--deep);color:white;box-shadow:0 0 0 5px #e6ecdf,0 7px 16px #40543a20}
+.stage.current .stage-title{color:var(--deep);font-weight:700}
+.stage.current .stage-note{color:var(--green)}
+.cancelled-panel{display:flex;gap:12px;align-items:flex-start;padding:15px;border-radius:15px;background:#f5e9e5;color:#98584f;font-size:11px;line-height:1.6;margin:8px 0 20px}
+.cancelled-panel svg{width:20px;height:20px;flex:none}
+@media(min-width:560px){.stage{min-height:70px}.stage-copy{padding-top:6px}}
 .section-title{font:500 29px/1.1 "Cormorant Garamond",serif;margin:25px 0 12px}.items{display:grid;gap:9px}
 .item{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:13px;background:#f1f3eb;font-size:11px;line-height:1.6}.item b{white-space:nowrap}
 .total{display:flex;justify-content:space-between;gap:12px;padding-top:15px;margin-top:12px;border-top:1px solid var(--line);font-size:13px;font-weight:700}
@@ -30,8 +50,16 @@ footer{text-align:center;padding:22px;color:var(--muted);font-size:10px}@media(m
 <script>
 "use strict";
 const API="https://lepi-orders.onrender.com/api/track",token=new URLSearchParams(location.search).get("token")||"";
-const labels={new:"Заказ получен",accepted:"Заказ принят",preparing:"Готовим ваш заказ",ready:"Заказ готов",courier:"Передан курьеру",completed:"Заказ завершён",cancelled:"Заказ отменён"};
-const steps=["new","accepted","preparing","ready","courier","completed"];
+const labels={new:"Заказ получен",accepted:"Принят в работу",preparing:"Готовим ваш заказ",ready:"Заказ готов",courier:"Передан курьеру",completed:"Заказ завершён",cancelled:"Заказ отменён"};
+const stages=[
+ {key:"new",title:"Заказ получен",note:"Мы получили ваш заказ",icon:'<path d="M7 3.8h8l3 3v13.4H7z"/><path d="M15 3.8v3.5h3M10 11h5M10 14.5h5M10 18h3"/>'},
+ {key:"accepted",title:"Подтверждение заказа",note:"Заказ принят командой LEPÍ",icon:'<path d="m5 12.5 4.2 4.2L19 7"/><circle cx="12" cy="12" r="9"/>'},
+ {key:"preparing",title:"Приготовление",note:"Ваш заказ готовится",icon:'<path d="M4 11h16l-1.3 8H5.3z"/><path d="M7 8c-1.2-1.2 1.2-2 0-3M12 8c-1.2-1.2 1.2-2 0-3M17 8c-1.2-1.2 1.2-2 0-3"/>'},
+ {key:"ready",title:"Заказ готов",note:"Всё собрано и подготовлено",icon:'<path d="M4 12.5 12 5l8 7.5v6.8H4z"/><path d="m8.5 13 2.3 2.3 4.8-5"/>'},
+ {key:"courier",title:"Передан курьеру",note:"Заказ отправился к вам",icon:'<path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7.5" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/>'},
+ {key:"completed",title:"Доставлен",note:"Заказ успешно завершён",icon:'<path d="m5 12.5 4.2 4.2L19 7"/><circle cx="12" cy="12" r="9"/>'}
+];
+function stageIcon(paths){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths+'</svg>'}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function date(v){try{return new Intl.DateTimeFormat("ru-RU",{dateStyle:"medium",timeStyle:"short"}).format(new Date(v))}catch{return ""}}
 async function load(){
@@ -41,11 +69,17 @@ async function load(){
   const r=await fetch(API+"?token="+encodeURIComponent(token),{cache:"no-store"});
   if(r.status===404){el.innerHTML="<strong>Заказ не найден</strong>Возможно, ссылка указана неверно.";return}
   if(!r.ok)throw new Error("Tracking unavailable");
-  const o=(await r.json()).order||{},step=steps.indexOf(o.status),cancelled=o.status==="cancelled",items=Array.isArray(o.items)?o.items:[];
+  const o=(await r.json()).order||{},step=stages.findIndex(x=>x.key===o.status),cancelled=o.status==="cancelled",items=Array.isArray(o.items)?o.items:[];
+  const completedIndex=o.status==="completed"?stages.length-1:step;
+  const stageMarkup=stages.map((stage,i)=>{
+   const done=!cancelled&&i<completedIndex,current=!cancelled&&i===completedIndex;
+   return '<div class="stage '+(done?'done ': '')+(current?'current':'')+'"><div class="stage-icon">'+stageIcon(stage.icon)+'</div><div class="stage-copy"><div class="stage-title">'+stage.title+'</div><div class="stage-note">'+(current?'Текущий этап · ': '')+stage.note+'</div></div></div>';
+  }).join("");
+  const completedCount=cancelled?0:(o.status==="completed"?stages.length:Math.max(0,completedIndex));
   el.className="paper";
   el.innerHTML='<div class="order-meta"><div class="order-no">№ '+esc(o.orderNumber)+'</div><div class="updated">Обновлено: '+esc(date(o.updatedAt))+'</div></div>'+
    '<div class="status" '+(cancelled?'style="background:#f3e4e1;color:#9b514a"':'')+'>'+esc(labels[o.status]||"Статус обновляется")+'</div>'+
-   '<div class="timeline">'+steps.slice(0,5).map((x,i)=>'<span class="'+(!cancelled&&step>=i?"done":"")+'"></span>').join("")+'</div>'+
+   (cancelled?'<div class="cancelled-panel">'+stageIcon('<path d="m8 8 8 8M16 8l-8 8"/><circle cx="12" cy="12" r="9"/>')+'<span>Этот заказ отменён. Если у вас есть вопросы, свяжитесь с командой LEPÍ.</span></div>':'<div class="progress-head"><span class="progress-label">Этапы заказа</span><span class="progress-count">'+completedCount+' / '+stages.length+' завершено</span></div><div class="timeline">'+stageMarkup+'</div>')+
    '<div class="section-title">Состав заказа</div><div class="items">'+items.map(x=>'<div class="item"><span>'+esc(x.name||x.title||"Товар")+' · '+esc(x.quantity||1)+' шт.</span><b>'+esc(x.price??"")+(String(x.price??"").includes("сомони")?"":" сомони")+'</b></div>').join("")+'</div>'+
    '<div class="total"><span>Итого за товары</span><span>'+esc(o.total)+'</span></div>'+
    '<p class="info">Заказ оформлен: '+esc(date(o.createdAt))+'<br>Доставка оплачивается отдельно. Для уточнения деталей с вами свяжется представитель LEPÍ. Телефон и адрес на этой странице не отображаются.</p>';
