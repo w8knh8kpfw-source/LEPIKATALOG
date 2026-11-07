@@ -241,6 +241,11 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 .version{max-width:1400px;margin:22px auto 0;text-align:center;font-size:10px;letter-spacing:.08em;color:var(--muted);opacity:.8}
 
 
+.tracking-success{margin:20px auto 22px;padding:18px;border:1px solid #dce4d4;border-radius:18px;background:#eef2e8;max-width:430px}
+.tracking-number{font-size:11px;font-weight:700;color:var(--deep);margin-bottom:12px}
+.tracking-success .btn{width:100%;text-decoration:none}
+.tracking-success p{font-size:10px;line-height:1.7;color:var(--muted);margin:10px 0 0}
+
 /* Согласие на обработку персональных данных */
 .product-status{display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:100%;padding:6px 9px;margin:0 0 9px;border-radius:30px;font-size:9px;font-weight:700;line-height:1.35}
 .product-status::before{content:"";width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:currentColor}
@@ -621,7 +626,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 2.3</div>
+ <div class="version">Версия 2.4</div>
 </footer>
 
 <div class="mobilecart">
@@ -1002,19 +1007,22 @@ async function sendOrder(event){
    body:JSON.stringify({...data,items:items().map(p=>({name:p.name,quantity:p.q,price:p.total})),total:money(sum()),text:orderText})
   });
   if(!response.ok)throw new Error("Не удалось отправить заказ");
-  showOrderPrepared();
+  const result=await response.json();
+  showOrderPrepared(result.tracking||null);
  }catch(error){
   setOrderLoading(false);
   toast("Не удалось отправить заказ. Проверьте интернет и попробуйте ещё раз.");
  }
 }
 
-function showOrderPrepared(){
+function showOrderPrepared(tracking=null){
  setOrderLoading(false);
+ const trackingBlock=tracking?'<div class="tracking-success"><div class="tracking-number">Номер заказа · '+esc(tracking.orderNumber)+'</div><a class="btn primary" href="'+esc(tracking.url)+'" target="_blank" rel="noopener">Отследить заказ '+icon("arrow")+'</a><p>По ссылке можно в любое время посмотреть актуальный статус заказа.</p></div>':"";
  $("checkoutBody").innerHTML=`
   <div class="success">
    <div class="success-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21"></circle><path d="M13 24.5 20.5 32 35 17"></path></svg></div>
    <h2>Спасибо за заказ!</h2><p>Заказ отправлен. Мы скоро с вами свяжемся, чтобы подтвердить детали.</p>
+   ${trackingBlock}
    <button class="btn primary" id="finish" type="button">Готово</button>
   </div>`;
  $("finish").addEventListener("click",()=>{
