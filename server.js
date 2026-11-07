@@ -650,7 +650,7 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=aw
       "",
       `💰 Сумма: ${total || "Не указана"}`,
       `💬 Комментарий: ${comment || "Нет"}`,
-      ...(trackedOrder?[`📦 Номер заказа: ${trackedOrder.order_number}`,`🔗 Отслеживание: ${trackedOrder.url}`,`📍 Текущий статус: ${ORDER_STATUSES.new}`]:[])
+      ...(trackedOrder?[`📦 Номер заказа: ${trackedOrder.order_number}`,`🔗 Отслеживание: ${trackedOrder.url}`,"",`📦 Текущий статус: ${ORDER_STATUSES.new}`]:[])
     ].join("\n");
 
     const results = await Promise.all(
