@@ -23,15 +23,20 @@ h1{font:500 clamp(43px,8vw,65px)/.95 "Cormorant Garamond",serif;letter-spacing:-
 .stage{display:grid;grid-template-columns:42px 1fr;gap:13px;position:relative;min-height:66px}
 .stage:not(:last-child):before{content:"";position:absolute;left:19px;top:40px;bottom:-1px;width:2px;border-radius:3px;background:#e5e8df}
 .stage.done:not(:last-child):before{background:linear-gradient(var(--green),#a9b99c)}
-.stage-icon{width:40px;height:40px;border:1px solid #e3e6de;border-radius:50%;background:#f0f1ec;color:#a4a99e;display:grid;place-items:center;position:relative;z-index:1;transition:all .25s}
-.stage-icon svg{width:18px;height:18px;display:block}
+.stage-icon{width:44px;height:44px;border:1px solid #ffffffd9;border-radius:16px;background:linear-gradient(145deg,#ffffffc9,#e9ede5a8);color:#a0a99a;display:grid;place-items:center;position:relative;z-index:1;overflow:hidden;backdrop-filter:blur(18px) saturate(1.45);-webkit-backdrop-filter:blur(18px) saturate(1.45);box-shadow:inset 0 1.5px 1px #fff,inset 0 -1px 1px #dfe5d9,0 5px 13px #35432a0a;transition:background .3s,border-color .3s,box-shadow .3s,color .3s}
+.stage-icon:before{content:"";position:absolute;inset:1px 2px 48%;border-radius:14px 14px 50% 50%;background:linear-gradient(180deg,#ffffffc9,#ffffff05);pointer-events:none}
+.stage-icon:after{content:"";position:absolute;width:22px;height:22px;right:-10px;bottom:-13px;border-radius:50%;background:#ffffff80;filter:blur(7px);pointer-events:none}
+.stage-icon svg{width:23px;height:23px;display:block;position:relative;z-index:1;filter:drop-shadow(0 1px 1px #ffffff80)}
+.stage-icon svg .icon-detail{opacity:.55}
 .stage-copy{padding:5px 0 18px}
 .stage-title{font-size:12px;font-weight:600;color:#9a9e93;line-height:1.4}
 .stage-note{font-size:10px;color:#a8aca2;margin-top:4px;line-height:1.5}
-.stage.done .stage-icon{background:#e5eddf;border-color:#d3dfca;color:#4f7047;box-shadow:0 3px 10px #506b4212}
+.stage.done .stage-icon{background:linear-gradient(145deg,#f5fff0ed,#cfe2c4d9);border-color:#ffffff;color:#477344;box-shadow:inset 0 1.5px 1px #ffffff, inset 0 -1px 2px #b8d1ad,0 5px 15px #527b4520}
 .stage.done .stage-title{color:var(--deep)}
 .stage.done .stage-note{color:#89917f}
-.stage.current .stage-icon{background:var(--deep);border-color:var(--deep);color:white;box-shadow:0 0 0 5px #e6ecdf,0 7px 16px #40543a20}
+.stage.current .stage-icon{background:linear-gradient(145deg,#91b783f2,#496b43f2 72%);border-color:#ffffff;color:#fff;box-shadow:inset 0 1.5px 1px #ffffffa8,inset 0 -2px 3px #29432980,0 0 0 5px #e6ecdf,0 8px 20px #40543a35}
+.stage.current .stage-icon:before{background:linear-gradient(180deg,#ffffffa8,#ffffff08)}
+.stage.current .stage-icon svg{filter:drop-shadow(0 1px 2px #28432970)}
 .stage.current .stage-title{color:var(--deep);font-weight:700}
 .stage.current .stage-note{color:var(--green)}
 .cancelled-panel{display:flex;gap:12px;align-items:flex-start;padding:15px;border-radius:15px;background:#f5e9e5;color:#98584f;font-size:11px;line-height:1.6;margin:8px 0 20px}
@@ -59,7 +64,7 @@ const stages=[
  {key:"courier",title:"Передан курьеру",note:"Заказ отправился к вам",icon:'<path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7.5" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/>'},
  {key:"completed",title:"Доставлен",note:"Заказ успешно завершён",icon:'<path d="m5 12.5 4.2 4.2L19 7"/><circle cx="12" cy="12" r="9"/>'}
 ];
-function stageIcon(paths){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths+'</svg>'}
+function stageIcon(paths,index){const id="lepi-icon-"+index;return '<svg viewBox="0 0 24 24" fill="none" stroke="url(#'+id+')" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="currentColor"/><stop offset=".52" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity=".68"/></linearGradient></defs>'+paths+'</svg>'}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function date(v){try{return new Intl.DateTimeFormat("ru-RU",{dateStyle:"medium",timeStyle:"short"}).format(new Date(v))}catch{return ""}}
 async function load(){
@@ -73,13 +78,13 @@ async function load(){
   const completedIndex=o.status==="completed"?stages.length-1:step;
   const stageMarkup=stages.map((stage,i)=>{
    const done=!cancelled&&i<completedIndex,current=!cancelled&&i===completedIndex;
-   return '<div class="stage '+(done?'done ': '')+(current?'current':'')+'"><div class="stage-icon">'+stageIcon(stage.icon)+'</div><div class="stage-copy"><div class="stage-title">'+stage.title+'</div><div class="stage-note">'+(current?'Текущий этап · ': '')+stage.note+'</div></div></div>';
+   return '<div class="stage '+(done?'done ': '')+(current?'current':'')+'"><div class="stage-icon">'+stageIcon(stage.icon,i)+'</div><div class="stage-copy"><div class="stage-title">'+stage.title+'</div><div class="stage-note">'+(current?'Текущий этап · ': '')+stage.note+'</div></div></div>';
   }).join("");
   const completedCount=cancelled?0:(o.status==="completed"?stages.length:Math.max(0,completedIndex));
   el.className="paper";
   el.innerHTML='<div class="order-meta"><div class="order-no">№ '+esc(o.orderNumber)+'</div><div class="updated">Обновлено: '+esc(date(o.updatedAt))+'</div></div>'+
    '<div class="status" '+(cancelled?'style="background:#f3e4e1;color:#9b514a"':'')+'>'+esc(labels[o.status]||"Статус обновляется")+'</div>'+
-   (cancelled?'<div class="cancelled-panel">'+stageIcon('<path d="m8 8 8 8M16 8l-8 8"/><circle cx="12" cy="12" r="9"/>')+'<span>Этот заказ отменён. Если у вас есть вопросы, свяжитесь с командой LEPÍ.</span></div>':'<div class="progress-head"><span class="progress-label">Этапы заказа</span><span class="progress-count">'+completedCount+' / '+stages.length+' завершено</span></div><div class="timeline">'+stageMarkup+'</div>')+
+   (cancelled?'<div class="cancelled-panel">'+stageIcon('<path d="m8 8 8 8M16 8l-8 8"/><circle cx="12" cy="12" r="9"/>',99)+'<span>Этот заказ отменён. Если у вас есть вопросы, свяжитесь с командой LEPÍ.</span></div>':'<div class="progress-head"><span class="progress-label">Этапы заказа</span><span class="progress-count">'+completedCount+' / '+stages.length+' завершено</span></div><div class="timeline">'+stageMarkup+'</div>')+
    '<div class="section-title">Состав заказа</div><div class="items">'+items.map(x=>'<div class="item"><span>'+esc(x.name||x.title||"Товар")+' · '+esc(x.quantity||1)+' шт.</span><b>'+esc(x.price??"")+(String(x.price??"").includes("сомони")?"":" сомони")+'</b></div>').join("")+'</div>'+
    '<div class="total"><span>Итого за товары</span><span>'+esc(o.total)+'</span></div>'+
    '<p class="info">Заказ оформлен: '+esc(date(o.createdAt))+'<br>Доставка оплачивается отдельно. Для уточнения деталей с вами свяжется представитель LEPÍ. Телефон и адрес на этой странице не отображаются.</p>';
