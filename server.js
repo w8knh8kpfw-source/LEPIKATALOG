@@ -116,6 +116,11 @@ async function createTrackedOrder(order){
 }
 async function updateTrackedOrderFulfillment(orderId,fulfillmentType){
   if(!Object.hasOwn(FULFILLMENT_TYPES,fulfillmentType))throw new Error("Invalid fulfillment type");
+  const existing=await dbRequest(`orders?id=eq.${encodeURIComponent(orderId)}&select=id,order_number,fulfillment_type`);
+  if(!existing||!existing[0])throw new Error("Order not found");
+  if(existing[0].fulfillment_type&&existing[0].fulfillment_type!==fulfillmentType){
+    throw new Error("Способ получения уже выбран: "+FULFILLMENT_TYPES[existing[0].fulfillment_type]);
+  }
   const rows=await dbRequest(`orders?id=eq.${encodeURIComponent(orderId)}&select=id,order_number,status,fulfillment_type`,{
     method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
     body:JSON.stringify({fulfillment_type:fulfillmentType,status_updated_at:new Date().toISOString()})
