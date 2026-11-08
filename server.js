@@ -16,6 +16,7 @@ const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || "review-photos";
 const PRODUCTS=[["chicken","Куриные котлеты с овощами"],["classic","Сырники классические"],["choco","Сырники шоколадные"],["rafaello","Сырники «Рафаэлло»"],["varenko","Сырники с варёнкой"],["beef","Говяжьи котлеты"],["meatp","Блинчики с мясом"],["curdp","Блинчики с творогом"],["condensed","Блинчики с варёной сгущёнкой"],["apple","Блинчики с яблоком и корицей"],["chopped","Рубленые куриные котлеты"],["meatballs","Фрикадельки"]].map(([id,name])=>({id,name}));
 const PRODUCT_STATUSES={available:"В наличии",preorder:"Готовим по предзаказу",unavailable:"Нет в наличии"};
 const ORDER_STATUSES={new:"Получен",accepted:"Принят",preparing:"Готовится",ready:"Готов",courier:"Передан курьеру",completed:"Завершён",cancelled:"Отменён"};
+const FULFILLMENT_TYPES={delivery:"Доставка",pickup:"Самовывоз"};
 
 let polling = false;
 let offset = 0;
@@ -91,25 +92,44 @@ async function getProductStatuses(){const rows=await dbRequest("product_statuses
 async function setProductStatus(productId,status){if(!PRODUCTS.some(p=>p.id===productId)||!Object.hasOwn(PRODUCT_STATUSES,status))throw new Error("Invalid product status");return dbRequest("product_statuses?on_conflict=product_id",{method:"POST",headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({product_id:productId,status,updated_at:new Date().toISOString()})})}
 async function showProductStatusMenu(chatId){const statuses=await getProductStatuses();for(const p of PRODUCTS){const status=statuses[p.id]||"available";await sendText(chatId,p.name,{reply_markup:{inline_keyboard:[Object.entries(PRODUCT_STATUSES).map(([key,label])=>({text:(status===key?"✓ ":"")+label,callback_data:`stock:${p.id}:${key}`}))]}})}}
 
-function orderStatusKeyboard(orderId,status){
-  return {inline_keyboard:[
-    ["accepted","preparing","ready"].map(key=>({text:(status===key?"✓ ":"")+ORDER_STATUSES[key],callback_data:`ord:${orderId}:${key}`})),
-    ["courier","completed","cancelled"].map(key=>({text:(status===key?"✓ ":"")+ORDER_STATUSES[key],callback_data:`ord:${orderId}:${key}`}))
-  ]};
+function orderFulfillmentKeyboard(orderId){
+  return {inline_keyboard:[[
+    {text:"🚚 Доставка",callback_data:`ful:${orderId}:delivery`},
+    {text:"🏠 Самовывоз",callback_data:`ful:${orderId}:pickup`}
+  ]]};
+}
+function orderStatusKeyboard(orderId,status,fulfillmentType){
+  const rows=[["accepted","preparing","ready"]];
+  if(fulfillmentType==="delivery")rows.push(["courier","completed","cancelled"]);
+  else rows.push(["completed","cancelled"]);
+  return {inline_keyboard:rows.map(row=>row.map(key=>({text:(status===key?"✓ ":"")+(key==="completed"&&fulfillmentType==="pickup"?"Забран клиентом":ORDER_STATUSES[key]),callback_data:`ord:${orderId}:${key}`})))};
 }
 async function createTrackedOrder(order){
   const token=crypto.randomBytes(24).toString("hex");
   const orderNumber="LEPI-"+Date.now().toString(36).toUpperCase();
   const rows=await dbRequest("orders?select=id,order_number,tracking_token",{
     method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
-    body:JSON.stringify({order_number:orderNumber,tracking_token:token,customer_name:order.name,items:order.items,total:order.total,status:"new",status_updated_at:new Date().toISOString()})
+    body:JSON.stringify({order_number:orderNumber,tracking_token:token,customer_name:order.name,items:order.items,total:order.total,status:"new",fulfillment_type:null,status_updated_at:new Date().toISOString()})
   });
   if(!rows||!rows[0]||!rows[0].id)throw new Error("Order tracking record was not created");
   return {...rows[0],url:`${ALLOWED_ORIGIN.replace(/\/+$/,"")}/track.html?token=${token}`};
 }
+async function updateTrackedOrderFulfillment(orderId,fulfillmentType){
+  if(!Object.hasOwn(FULFILLMENT_TYPES,fulfillmentType))throw new Error("Invalid fulfillment type");
+  const rows=await dbRequest(`orders?id=eq.${encodeURIComponent(orderId)}&select=id,order_number,status,fulfillment_type`,{
+    method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
+    body:JSON.stringify({fulfillment_type:fulfillmentType,status_updated_at:new Date().toISOString()})
+  });
+  if(!rows||!rows[0])throw new Error("Order not found");
+  return rows[0];
+}
 async function updateTrackedOrderStatus(orderId,status){
   if(!Object.hasOwn(ORDER_STATUSES,status))throw new Error("Invalid order status");
-  const rows=await dbRequest(`orders?id=eq.${encodeURIComponent(orderId)}&select=id,order_number,status`,{
+  const current=await dbRequest(`orders?id=eq.${encodeURIComponent(orderId)}&select=id,order_number,fulfillment_type`);
+  if(!current||!current[0])throw new Error("Order not found");
+  if(!current[0].fulfillment_type)throw new Error("Сначала выберите способ получения");
+  if(status==="courier"&&current[0].fulfillment_type!=="delivery")throw new Error("Курьер доступен только для доставки");
+  const rows=await dbRequest(`orders?id=eq.${encodeURIComponent(orderId)}&select=id,order_number,status,fulfillment_type`,{
     method:"PATCH",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
     body:JSON.stringify({status,status_updated_at:new Date().toISOString()})
   });
@@ -117,7 +137,7 @@ async function updateTrackedOrderStatus(orderId,status){
   return rows[0];
 }
 async function getTrackedOrder(token){
-  const rows=await dbRequest(`orders?tracking_token=eq.${encodeURIComponent(token)}&select=order_number,customer_name,items,total,status,created_at,status_updated_at`);
+  const rows=await dbRequest(`orders?tracking_token=eq.${encodeURIComponent(token)}&select=order_number,customer_name,items,total,status,fulfillment_type,created_at,status_updated_at`);
   return rows&&rows[0]?rows[0]:null;
 }
 
@@ -386,13 +406,32 @@ async function handleUpdate(update) {
     });
   }
 
+  const fulfillmentMatch=/^ful:([0-9a-f-]{36}):(delivery|pickup)$/.exec(callback.data||"");
+  if(fulfillmentMatch){
+    const [,orderId,fulfillmentType]=fulfillmentMatch;
+    try{
+      const updated=await updateTrackedOrderFulfillment(orderId,fulfillmentType);
+      const baseText=String(callback.message?.text||"").split("\n\n🚚 Способ получения:")[0];
+      const modeLabel=FULFILLMENT_TYPES[fulfillmentType];
+      await telegram("editMessageText",{chat_id:chatId,message_id:callback.message.message_id,text:baseText+"\n\n🚚 Способ получения: "+modeLabel+"\n\n📦 Текущий статус: "+ORDER_STATUSES.new,reply_markup:orderStatusKeyboard(orderId,"new",fulfillmentType)});
+      await telegram("answerCallbackQuery",{callback_query_id:callback.id,text:"Выбран способ: "+modeLabel});
+      await Promise.all(CHAT_IDS.filter(id=>id!==chatId).map(id=>sendText(id,"📦 "+updated.order_number+" — способ получения: "+modeLabel)));
+    }catch(error){
+      console.error("Could not set order fulfillment:",error.message);
+      await telegram("answerCallbackQuery",{callback_query_id:callback.id,text:"Не удалось выбрать способ получения.",show_alert:true});
+    }
+    return;
+  }
+
   const orderMatch=/^ord:([0-9a-f-]{36}):(accepted|preparing|ready|courier|completed|cancelled)$/.exec(callback.data||"");
   if(orderMatch){
     const [,orderId,nextStatus]=orderMatch;
     try{
       const updated=await updateTrackedOrderStatus(orderId,nextStatus);
       const baseText=String(callback.message?.text||"").split("\n\n📦 Текущий статус:")[0];
-      await telegram("editMessageText",{chat_id:chatId,message_id:callback.message.message_id,text:baseText+"\n\n📦 Текущий статус: "+ORDER_STATUSES[nextStatus],reply_markup:orderStatusKeyboard(orderId,nextStatus)});
+      const mode=updated.fulfillment_type;
+      const statusLabel=nextStatus==="completed"&&mode==="pickup"?"Забран клиентом":ORDER_STATUSES[nextStatus];
+      await telegram("editMessageText",{chat_id:chatId,message_id:callback.message.message_id,text:baseText+"\n\n📦 Текущий статус: "+statusLabel,reply_markup:orderStatusKeyboard(orderId,nextStatus,mode)});
       await telegram("answerCallbackQuery",{callback_query_id:callback.id,text:"Статус "+updated.order_number+": "+ORDER_STATUSES[nextStatus]});
       await Promise.all(CHAT_IDS.filter(id=>id!==chatId).map(id=>sendText(id,"📦 "+updated.order_number+" — новый статус: "+ORDER_STATUSES[nextStatus])));
     }catch(error){
@@ -535,7 +574,7 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=aw
       const order=await getTrackedOrder(token);
       if(!order){res.writeHead(404);return res.end(JSON.stringify({error:"Order not found"}))}
       res.writeHead(200,{"Cache-Control":"no-store"});
-      return res.end(JSON.stringify({order:{orderNumber:order.order_number,customerName:order.customer_name,items:order.items,total:order.total,status:order.status,createdAt:order.created_at,updatedAt:order.status_updated_at}}));
+      return res.end(JSON.stringify({order:{orderNumber:order.order_number,customerName:order.customer_name,items:order.items,total:order.total,status:order.status,fulfillmentType:order.fulfillment_type,createdAt:order.created_at,updatedAt:order.status_updated_at}}));
     }catch(error){
       console.error("Could not load tracked order:",error.message);
       res.writeHead(503);return res.end(JSON.stringify({error:"Tracking temporarily unavailable"}));
@@ -659,7 +698,7 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=aw
           const result = await telegram("sendMessage", {
             chat_id: chatId,
             text: message,
-            ...(trackedOrder?{reply_markup:orderStatusKeyboard(trackedOrder.id,"new")}:{})
+            ...(trackedOrder?{reply_markup:orderFulfillmentKeyboard(trackedOrder.id)}:{})
           });
 
           return Boolean(result.message_id);
