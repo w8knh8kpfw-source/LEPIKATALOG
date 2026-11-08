@@ -59,6 +59,11 @@ const stages=[
  {key:"courier",title:"Передан курьеру",note:"Заказ отправился к вам",icon:'<path d="M3.5 7h10v10h-10z" fill="currentColor" opacity=".12"/><path d="M3.5 7h10v10h-10zM13.5 10h4l3 3v4h-7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="7.5" cy="18" r="2" fill="currentColor" opacity=".18"/><circle cx="17.2" cy="18" r="2" fill="currentColor" opacity=".18"/><circle cx="7.5" cy="18" r="1.5" stroke="currentColor" stroke-width="1.4"/><circle cx="17.2" cy="18" r="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M15 12h2.2l1.6 1.8H15z" fill="currentColor" opacity=".4"/>'},
  {key:"completed",title:"Доставлен",note:"Заказ успешно завершён",icon:'<path d="M4.5 11.5 12 5l7.5 6.5v7h-15z" fill="currentColor" opacity=".12"/><path d="M4.5 11.5 12 5l7.5 6.5v7h-15z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 19v-5h6v5M9.2 11.8l1.8 1.8 3.9-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'}
 ];
+const pickupStages=stages.filter(stage=>stage.key!=="courier").map(stage=>{
+ if(stage.key==="ready")return {...stage,title:"Готов к самовывозу",note:"Можно забрать ваш заказ"};
+ if(stage.key==="completed")return {...stage,title:"Забран клиентом",note:"Заказ успешно получен"};
+ return stage;
+});
 function stageIcon(paths){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths+'</svg>'}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function date(v){try{return new Intl.DateTimeFormat("ru-RU",{dateStyle:"medium",timeStyle:"short"}).format(new Date(v))}catch{return ""}}
@@ -69,20 +74,22 @@ async function load(){
   const r=await fetch(API+"?token="+encodeURIComponent(token),{cache:"no-store"});
   if(r.status===404){el.innerHTML="<strong>Заказ не найден</strong>Возможно, ссылка указана неверно.";return}
   if(!r.ok)throw new Error("Tracking unavailable");
-  const o=(await r.json()).order||{},step=stages.findIndex(x=>x.key===o.status),cancelled=o.status==="cancelled",items=Array.isArray(o.items)?o.items:[];
-  const completedIndex=o.status==="completed"?stages.length-1:step;
-  const stageMarkup=stages.map((stage,i)=>{
+  const o=(await r.json()).order||{},mode=o.fulfillmentType,activeStages=mode==="pickup"?pickupStages:stages,step=activeStages.findIndex(x=>x.key===o.status),cancelled=o.status==="cancelled",items=Array.isArray(o.items)?o.items:[];
+  const completedIndex=o.status==="completed"?activeStages.length-1:step;
+  const stageMarkup=activeStages.map((stage,i)=>{
    const done=!cancelled&&i<completedIndex,current=!cancelled&&i===completedIndex;
    return '<div class="stage '+(done?'done ': '')+(current?'current':'')+'"><div class="stage-icon">'+stageIcon(stage.icon)+'</div><div class="stage-copy"><div class="stage-title">'+stage.title+'</div><div class="stage-note">'+(current?'Текущий этап · ': '')+stage.note+'</div></div></div>';
   }).join("");
-  const completedCount=cancelled?0:(o.status==="completed"?stages.length:Math.max(0,completedIndex));
+  const completedCount=cancelled?0:(o.status==="completed"?activeStages.length:Math.max(0,completedIndex));
+  const statusLabel=!mode?"Ожидаем подтверждения способа получения":(mode==="pickup"&&o.status==="completed"?"Заказ забран":labels[o.status]||"Статус обновляется");
+  const timelineBlock=!mode?'<div class="error" style="margin:8px 0 22px"><strong>Уточняем способ получения</strong>Команда LEPÍ скоро выберет доставку или самовывоз. Этапы заказа появятся здесь автоматически.</div>':(cancelled?'<div class="cancelled-panel">'+stageIcon('<path d="m8 8 8 8M16 8l-8 8"/><circle cx="12" cy="12" r="9"/>')+'<span>Этот заказ отменён. Если у вас есть вопросы, свяжитесь с командой LEPÍ.</span></div>':'<div class="progress-head"><span class="progress-label">Этапы заказа</span><span class="progress-count">'+completedCount+' / '+activeStages.length+' завершено</span></div><div class="timeline">'+stageMarkup+'</div>');
   el.className="paper";
   el.innerHTML='<div class="order-meta"><div class="order-no">№ '+esc(o.orderNumber)+'</div><div class="updated">Обновлено: '+esc(date(o.updatedAt))+'</div></div>'+
-   '<div class="status" '+(cancelled?'style="background:#f3e4e1;color:#9b514a"':'')+'>'+esc(labels[o.status]||"Статус обновляется")+'</div>'+
-   (cancelled?'<div class="cancelled-panel">'+stageIcon('<path d="m8 8 8 8M16 8l-8 8"/><circle cx="12" cy="12" r="9"/>')+'<span>Этот заказ отменён. Если у вас есть вопросы, свяжитесь с командой LEPÍ.</span></div>':'<div class="progress-head"><span class="progress-label">Этапы заказа</span><span class="progress-count">'+completedCount+' / '+stages.length+' завершено</span></div><div class="timeline">'+stageMarkup+'</div>')+
+   '<div class="status" '+(cancelled?'style="background:#f3e4e1;color:#9b514a"':'')+'>'+esc(statusLabel)+'</div>'+
+   timelineBlock+
    '<div class="section-title">Состав заказа</div><div class="items">'+items.map(x=>'<div class="item"><span>'+esc(x.name||x.title||"Товар")+' · '+esc(x.quantity||1)+' шт.</span><b>'+esc(x.price??"")+(String(x.price??"").includes("сомони")?"":" сомони")+'</b></div>').join("")+'</div>'+
    '<div class="total"><span>Итого за товары</span><span>'+esc(o.total)+'</span></div>'+
-   '<p class="info">Заказ оформлен: '+esc(date(o.createdAt))+'<br>Доставка оплачивается отдельно. Для уточнения деталей с вами свяжется представитель LEPÍ. Телефон и адрес на этой странице не отображаются.</p>';
+   '<p class="info">Заказ оформлен: '+esc(date(o.createdAt))+'<br>'+(mode==="pickup"?"Самовывоз: дождитесь статуса «Готов к самовывозу», прежде чем приезжать за заказом.":"Доставка оплачивается отдельно.")+' Для уточнения деталей с вами свяжется представитель LEPÍ. Телефон и адрес на этой странице не отображаются.</p>';
  }catch(e){el.className="error";el.innerHTML="<strong>Не удалось загрузить заказ</strong>Проверьте интернет и обновите страницу."}
 }
 load();setInterval(load,20000);
