@@ -1122,7 +1122,7 @@ function checkout(){
 function validateCheckoutStep(step){
  const checks={
   1:["orderName","nameError",value=>!!value,"Укажите, пожалуйста, ваше имя."],
-  2:["orderPhone","phoneError",value=>value.replace(/\\D/g,"").length>=7,"Введите номер телефона с кодом страны."],
+  2:["orderPhone","phoneError",value=>value.replace(/\D/g,"").length>=7,"Введите номер телефона с кодом страны."],
   3:["orderAddress","addressError",value=>!!value,"Укажите улицу, дом и ориентир."]
  };
  const item=checks[step];if(!item)return true;
