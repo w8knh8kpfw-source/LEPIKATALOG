@@ -200,7 +200,7 @@ section.block{padding:26px 0 65px}
 .bundle-card>p{font-size:10px;line-height:1.7;color:var(--muted);min-height:34px;margin:0 0 13px}
 .bundle-items{display:grid;gap:8px;margin:12px 0 15px}
 .bundle-item{display:flex;align-items:center;gap:9px;font-size:10px;color:#59624f}
-.bundle-item img{width:43px;height:43px;object-fit:contain;padding:3px;background:#fff;border:1px solid #f0eee8;border-radius:11px}
+.bundle-item img{width:43px;height:43px;flex:0 0 43px;object-fit:cover;object-position:center;padding:0;background:#fff;border:1px solid #f0eee8;border-radius:11px;display:block}
 .bundle-item .placeholder{width:43px;height:43px;min-height:43px;padding:2px;border-radius:11px;font-size:6px}
 .bundle-item .placeholder b{font-size:10px}
 .bundle-total{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:12px;border-top:1px solid #e9e8df;font-size:10px;color:var(--muted)}
@@ -212,7 +212,7 @@ section.block{padding:26px 0 65px}
 .related-title{font-size:10px;font-weight:700;color:var(--deep);margin-bottom:10px}
 .related-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .related-item{display:flex;align-items:center;gap:9px;padding:8px;border-radius:13px;background:#ffffffa8;border:1px solid #fff}
-.related-item img{width:48px;height:48px;object-fit:contain;padding:3px;border-radius:10px;background:#fff}
+.related-item img{width:48px;height:48px;flex:0 0 48px;object-fit:cover;object-position:center;padding:0;border-radius:10px;background:#fff;display:block}
 .related-item .placeholder{width:48px;min-height:48px;padding:2px;border-radius:10px}
 .related-item .placeholder b{font-size:11px}
 .related-copy{min-width:0;flex:1}
@@ -482,6 +482,36 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
  .checkout .field.full{grid-column:auto}
 }
 
+
+/* Многошаговое оформление заказа */
+.checkout{width:min(520px,100%);padding:28px 30px}
+.checkout-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:18px 0 24px}
+.checkout-progress-step{height:4px;border-radius:9px;background:#e9ebe4;overflow:hidden}
+.checkout-progress-step.active,.checkout-progress-step.done{background:#718768}
+.checkout-stage{animation:checkoutStageIn .32s ease both}
+@keyframes checkoutStageIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+.checkout-art{width:68px;height:68px;display:grid;place-items:center;margin:0 0 14px;border-radius:21px;background:#eef2e9;color:#627a59}
+.checkout-art svg{width:43px;height:43px;fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+.checkout-art svg path,.checkout-art svg circle,.checkout-art svg rect,.checkout-art svg line{stroke-dasharray:90;stroke-dashoffset:90;animation:checkoutDraw 1s ease forwards}
+@keyframes checkoutDraw{to{stroke-dashoffset:0}}
+.checkout-stage h3{font:500 30px/1.05 "Cormorant Garamond",serif;margin:0 0 7px;color:var(--ink)}
+.checkout-stage>p{font-size:11px;line-height:1.7;color:var(--muted);margin:0 0 19px}
+.checkout-stage .field{margin:0 0 14px}
+.checkout-stage .field input,.checkout-stage .field textarea{min-height:52px;border-radius:13px;background:#fff;font-size:16px}
+.checkout-stage .field textarea{min-height:76px}
+.checkout-nav{display:flex;gap:9px;margin-top:17px}
+.checkout-nav .btn{flex:1;min-height:49px;border-radius:13px}
+.checkout-back{background:#f0f1eb;color:#59634f;border:1px solid #e5e8df}
+.checkout-final-summary{margin:14px 0;padding:14px;border:1px solid #e7e9e0;border-radius:15px;background:#f7f8f3}
+.checkout-final-summary .summary{margin:0;padding:0;border:0;background:none}
+.checkout .field-error{margin-top:1px}
+@media(max-width:700px){
+ .checkout{padding:23px 19px}
+ .checkout-art{width:60px;height:60px;margin-bottom:12px}
+ .checkout-stage h3{font-size:28px}
+ .checkout-progress{margin:16px 0 21px}
+}
+
 </style>
 </head>
 
@@ -690,7 +720,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 3.0</div>
+ <div class="version">Версия 3.1</div>
 </footer>
 
 <div class="mobilecart">
@@ -1030,43 +1060,83 @@ function checkout(){
  closeCart();
  const orderRows=items().map(p=>`<div class="summary-row"><span>${esc(p.name)} · ${esc(qtyText(p,p.q))}</span><b>${money(p.total)}</b></div>`).join("");
  $("checkoutBody").innerHTML=`
-  <div class="kicker">LEPÍ</div>
+  <div class="kicker">LEPÍ · ВАШ ЗАКАЗ</div>
   <h2>Оформление заказа</h2>
-  <p class="checkoutintro">Заполните несколько полей, чтобы мы могли подтвердить и доставить ваш заказ.</p>
+  <p class="checkoutintro">Всего три коротких шага — и мы сможем подтвердить ваш заказ.</p>
+  <div class="checkout-progress" aria-label="Шаг 1 из 3">
+   <span class="checkout-progress-step active"></span><span class="checkout-progress-step"></span><span class="checkout-progress-step"></span>
+  </div>
   <form id="orderForm" novalidate>
-   <div class="checkout-section-title">Контактные данные</div>
-   <div class="formgrid">
+   <section class="checkout-stage" data-checkout-step="1">
+    <div class="checkout-art" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="16" r="8"/><path d="M9 41c1.8-8 7-12 15-12s13.2 4 15 12"/></svg></div>
+    <h3>Как к вам обращаться?</h3>
+    <p>Напишите ваше имя, чтобы мы знали, кому готовим заказ.</p>
     <div class="field">
-     <label for="orderName">Имя <span>*</span></label>
-     <input id="orderName" name="customerName" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" required maxlength="80" placeholder="Ваше имя" aria-describedby="nameError">
+     <label for="orderName">Ваше имя</label>
+     <input id="orderName" name="customerName" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" required maxlength="80" placeholder="Например, Малика" aria-describedby="nameError">
      <span class="field-error" id="nameError">Укажите, пожалуйста, ваше имя.</span>
     </div>
+    <div class="checkout-nav"><button class="btn primary" type="button" data-checkout-next="2">Продолжить ${icon("arrow")}</button></div>
+   </section>
+   <section class="checkout-stage" data-checkout-step="2" hidden>
+    <div class="checkout-art" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M15 7h18a3 3 0 0 1 3 3v28a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3Z"/><path d="M20 12h8M21 35h6"/></svg></div>
+    <h3>Ваш номер телефона</h3>
+    <p>Оставьте номер, по которому мы сможем связаться и подтвердить заказ.</p>
     <div class="field">
-     <label for="orderPhone">Телефон <span>*</span></label>
-     <input id="orderPhone" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" required maxlength="30" placeholder="+992" aria-describedby="phoneError">
+     <label for="orderPhone">Номер телефона</label>
+     <input id="orderPhone" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" required maxlength="30" placeholder="+992 __ ___ __ __" aria-describedby="phoneError">
      <span class="field-error" id="phoneError">Введите корректный номер телефона.</span>
     </div>
-    <div class="checkout-section-title full">Адрес доставки</div>
-    <div class="field full">
-     <label for="orderAddress">Адрес доставки <span>*</span></label>
-     <input id="orderAddress" name="customerAddress" type="text" autocomplete="street-address" autocapitalize="sentences" enterkeyhint="next" required maxlength="250" placeholder="Улица, дом, квартира, ориентир" aria-describedby="addressError">
+    <div class="checkout-nav"><button class="btn checkout-back" type="button" data-checkout-back="1">Назад</button><button class="btn primary" type="button" data-checkout-next="3">Продолжить ${icon("arrow")}</button></div>
+   </section>
+   <section class="checkout-stage" data-checkout-step="3" hidden>
+    <div class="checkout-art" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 43s15-14 15-25a15 15 0 0 0-30 0c0 11 15 25 15 25Z"/><circle cx="24" cy="18" r="5"/></svg></div>
+    <h3>Куда доставить заказ?</h3>
+    <p>Укажите адрес в Худжанде. Если есть ориентир, добавьте его в комментарий.</p>
+    <div class="field">
+     <label for="orderAddress">Адрес доставки</label>
+     <input id="orderAddress" name="customerAddress" type="text" autocomplete="street-address" autocapitalize="sentences" enterkeyhint="next" required maxlength="250" placeholder="Улица, дом, квартира" aria-describedby="addressError">
      <span class="field-error" id="addressError">Укажите адрес доставки в Худжанде.</span>
     </div>
-    <div class="field full">
+    <div class="field">
      <label for="orderComment">Комментарий <span>необязательно</span></label>
-     <textarea id="orderComment" name="customerComment" maxlength="500" autocomplete="off" enterkeyhint="done" placeholder="Комментарий (необязательно)"></textarea>
+     <textarea id="orderComment" name="customerComment" maxlength="500" autocomplete="off" enterkeyhint="done" placeholder="Подъезд, этаж или пожелание"></textarea>
     </div>
-   </div>
-   <div class="summary"><div class="summary-title">Ваш заказ</div>${orderRows}<div class="summary-total"><span>Итого за товары</span><strong>${money(sum())}</strong></div><p class="delivery-note">Доставка оплачивается отдельно. Стоимость согласуем с вами перед подтверждением.</p></div>
-   <button class="btn primary" id="submitOrder" type="submit">Отправить заказ ${icon("arrow")}</button>
+    <div class="checkout-final-summary"><div class="summary"><div class="summary-title">Ваш заказ</div>${orderRows}<div class="summary-total"><span>Итого за товары</span><strong>${money(sum())}</strong></div><p class="delivery-note">Доставка оплачивается отдельно. Стоимость согласуем с вами перед подтверждением.</p></div></div>
+    <div class="checkout-nav"><button class="btn checkout-back" type="button" data-checkout-back="2">Назад</button><button class="btn primary" id="submitOrder" type="submit">Отправить заказ ${icon("arrow")}</button></div>
+   </section>
   </form>`;
  openOverlay("checkoutOverlay");
- $("orderForm").addEventListener("submit",sendOrder);
+ const form=$("orderForm");
+ form.addEventListener("submit",sendOrder);
+ form.addEventListener("click",event=>{
+  const next=event.target.closest("[data-checkout-next]");
+  const back=event.target.closest("[data-checkout-back]");
+  if(next){const target=Number(next.dataset.checkoutNext);if(validateCheckoutStep(target-1))showCheckoutStep(target)}
+  if(back)showCheckoutStep(Number(back.dataset.checkoutBack));
+ });
  for(const [id,errorId] of [["orderName","nameError"],["orderPhone","phoneError"],["orderAddress","addressError"]]){
   $(id).addEventListener("input",()=>clearFieldError($(id),errorId));
  }
 }
-
+function validateCheckoutStep(step){
+ const checks={
+  1:["orderName","nameError",value=>!!value,"Укажите, пожалуйста, ваше имя."],
+  2:["orderPhone","phoneError",value=>value.replace(/\\D/g,"").length>=7,"Введите номер телефона с кодом страны."],
+  3:["orderAddress","addressError",value=>!!value,"Укажите улицу, дом и ориентир."]
+ };
+ const item=checks[step];if(!item)return true;
+ const field=$(item[0]);const value=field.value.trim();
+ if(!item[2](value)){showFieldError(field,item[1],item[3]);return false}
+ clearFieldError(field,item[1]);return true;
+}
+function showCheckoutStep(step){
+ $("checkoutBody").querySelectorAll("[data-checkout-step]").forEach(panel=>{panel.hidden=Number(panel.dataset.checkoutStep)!==step});
+ $("checkoutBody").querySelectorAll(".checkout-progress-step").forEach((bar,index)=>{bar.classList.toggle("active",index===step-1);bar.classList.toggle("done",index<step-1)});
+ const progress=$("checkoutBody").querySelector(".checkout-progress");if(progress)progress.setAttribute("aria-label","Шаг "+step+" из 3");
+ const target=step===1?"orderName":step===2?"orderPhone":"orderAddress";
+ const field=$(target);if(field)field.focus({preventScroll:true});
+}
 function clearFieldError(field,errorId){field.removeAttribute("aria-invalid");$(errorId).classList.remove("show")}
 function showFieldError(field,errorId,message){field.setAttribute("aria-invalid","true");$(errorId).textContent=message;$(errorId).classList.add("show");field.focus()}
 
