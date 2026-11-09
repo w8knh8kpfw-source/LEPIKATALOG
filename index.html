@@ -460,6 +460,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 .checkout h2{font:500 clamp(34px,5vw,42px)/1.02 "Cormorant Garamond",serif;margin:8px 0 9px}
 .checkoutintro{font-size:12px;line-height:1.65;margin:0 0 22px;color:#777d70;max-width:420px}
 .checkout-section-title{font-size:11px;font-weight:700;letter-spacing:.035em;color:#4e5947;margin:0 0 10px}
+.checkout-section-title.full{grid-column:1/-1;margin-top:3px}
 .checkout .formgrid{grid-template-columns:1fr 1fr;gap:0 12px}
 .checkout .field.full{grid-column:1/-1}
 .checkout .field{gap:5px;margin-bottom:13px}
@@ -689,7 +690,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 2.9</div>
+ <div class="version">Версия 3.0</div>
 </footer>
 
 <div class="mobilecart">
@@ -1045,6 +1046,7 @@ function checkout(){
      <input id="orderPhone" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" required maxlength="30" placeholder="+992" aria-describedby="phoneError">
      <span class="field-error" id="phoneError">Введите корректный номер телефона.</span>
     </div>
+    <div class="checkout-section-title full">Адрес доставки</div>
     <div class="field full">
      <label for="orderAddress">Адрес доставки <span>*</span></label>
      <input id="orderAddress" name="customerAddress" type="text" autocomplete="street-address" autocapitalize="sentences" enterkeyhint="next" required maxlength="250" placeholder="Улица, дом, квартира, ориентир" aria-describedby="addressError">
