@@ -186,9 +186,12 @@ section.block{padding:26px 0 65px}
 .newcard p{font-size:11px;line-height:1.75;color:var(--muted);margin:0}
 
 
-.prodimg{background:#fff;border:1px solid #f0eee7}
-.prodimg img{object-fit:contain;padding:9px;mix-blend-mode:multiply;transition:transform .35s ease}
-.product:hover .prodimg img{transform:scale(1.035)}
+.prodimg{height:auto;aspect-ratio:1/1;background:#fff;border:1px solid #f0eee7}
+.prodimg img{width:100%;height:100%;object-fit:cover;object-position:center;padding:0;mix-blend-mode:normal;transition:transform .35s ease}
+.product:hover .prodimg img{transform:scale(1.025)}
+.detailimg{background:#fff}
+.detailimg img{width:100%;height:100%;min-height:300px;object-fit:cover;object-position:center;padding:0;mix-blend-mode:normal}
+.bundle-item img,.related-item img{object-fit:cover;padding:0;mix-blend-mode:normal}
 .bundle-section{padding:27px;border-radius:28px;background:linear-gradient(125deg,#e7ebdf,#fffdf8 58%,#f1e8da);border:1px solid #fff;box-shadow:0 18px 48px #3341280b}
 .bundle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:22px}
 .bundle-card{min-width:0;padding:17px;border:1px solid #fff;border-radius:20px;background:#ffffffb8;box-shadow:0 8px 25px #33412809}
@@ -443,6 +446,32 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* Упрощённая инструкция и оформление */
+.guide{padding:24px}
+.guidehead{margin:8px 0 16px}
+.guide-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.guide-step{display:flex;align-items:flex-start;gap:12px;padding:17px;border:1px solid #fff;border-radius:17px;background:#ffffff91}
+.guide-step>span{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border-radius:10px;background:#e6ebdf;color:var(--deep);font-weight:700}
+.guide-step b{display:block;font-size:12px;margin:2px 0 5px}
+.guide-step p{font-size:11px;line-height:1.6;color:var(--muted);margin:0}
+.checkout{width:min(500px,100%);padding:25px}
+.checkoutintro{margin-bottom:15px}
+.checkout .formgrid{grid-template-columns:1fr;gap:0}
+.checkout .field.full{grid-column:auto}
+.checkout .field{margin-bottom:10px}
+.checkout .field input{min-height:46px}
+.checkout .field textarea{min-height:65px}
+.checkout .summary{margin:8px 0 13px;padding:13px}
+.checkout .btn{margin-top:2px}
+@media(max-width:700px){
+ .guide{padding:19px}
+ .guide-steps{grid-template-columns:1fr;gap:8px}
+ .guide-step{padding:13px}
+ .checkout{padding:22px 17px}
+ .prodimg{aspect-ratio:1/1}
+}
+
 </style>
 </head>
 
@@ -550,36 +579,15 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
  </div>
 </section>
 
-<!-- Как пользоваться сайтом — теперь перед каталогом -->
+<!-- Короткая инструкция -->
 <section class="block" id="guide">
  <div class="guide glass">
-  <div class="guidehead">
-   <div><div class="kicker">Быстрый старт</div><h2>Как пользоваться сайтом?</h2><p>Три простых шага от выбора блюд до оформления заказа.</p></div>
-   <div class="guidecounter" id="guideCounter" aria-live="polite">1 из 3</div>
-  </div>
-  <div class="slides-window">
-   <div class="slides-track" id="slidesTrack">
-    <article class="guide-slide" aria-label="Слайд 1 из 3">
-     <div class="slide-number">01</div><div><h3>Выберите блюда</h3><p>Откройте каталог, используйте поиск или категории. Нажмите на карточку, чтобы узнать подробности, состав, цену и количество.</p></div>
-    </article>
-    <article class="guide-slide" aria-label="Слайд 2 из 3">
-     <div class="slide-number">02</div><div><h3>Проверьте корзину</h3><p>Добавьте нужные продукты, измените количество и проверьте общую стоимость. Доставка оплачивается отдельно.</p></div>
-    </article>
-    <article class="guide-slide" aria-label="Слайд 3 из 3">
-     <div class="slide-number">03</div><div><h3>Оформите заказ</h3><p>Укажите имя, телефон и адрес в Худжанде. После отправки мы свяжемся с вами, чтобы подтвердить заказ и согласовать доставку.</p></div>
-    </article>
-   </div>
-  </div>
-  <div class="guide-controls">
-   <div class="slide-dots" role="group" aria-label="Выбрать слайд">
-    <button class="slide-dot active" type="button" data-slide="0" aria-label="Слайд 1" aria-current="step"></button>
-    <button class="slide-dot" type="button" data-slide="1" aria-label="Слайд 2"></button>
-    <button class="slide-dot" type="button" data-slide="2" aria-label="Слайд 3"></button>
-   </div>
-   <div class="guide-buttons">
-    <button class="iconbtn" id="prevSlide" type="button" aria-label="Предыдущий слайд" disabled><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <button class="iconbtn" id="nextSlide" type="button" aria-label="Следующий слайд"><svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></button>
-   </div>
+  <div class="kicker">Всего 3 шага</div>
+  <div class="guidehead"><div><h2>Как заказать?</h2><p>Всё просто — выберите, добавьте, оформите.</p></div></div>
+  <div class="guide-steps">
+   <article class="guide-step"><span>1</span><div><b>Выберите блюда</b><p>Нажмите «+» у понравившегося товара.</p></div></article>
+   <article class="guide-step"><span>2</span><div><b>Откройте корзину</b><p>Проверьте заказ и количество.</p></div></article>
+   <article class="guide-step"><span>3</span><div><b>Оставьте контакты</b><p>Укажите имя, телефон и адрес. Мы подтвердим заказ.</p></div></article>
   </div>
  </div>
 </section>
@@ -730,7 +738,7 @@ const products=[
 const bundles=[
  {id:"breakfast",name:"Завтрак дома",tag:"Для уютного утра",description:"Сырники и блинчики с разными начинками.",items:["classic","curdp","apple"]},
  {id:"lunch",name:"Сытный обед",tag:"На каждый день",description:"Куриные и говяжьи котлеты с фрикадельками.",items:["chicken","beef","meatballs"]},
- {id:"tea",name:"К чаю",tag:"Сладкая подборка",description:"Десертные вкусы для семейного чаепития.",items:["rafaello","choco","condensed"]}
+ {id:"tea",name:"Сладкий вечер",tag:"К чаю",description:"Три вида сладких блинчиков для семейного чаепития.",items:["curdp","condensed","apple"]}
 ];
 const relatedProducts={chicken:["meatballs","beef"],classic:["curdp","rafaello"],choco:["rafaello","varenko"],rafaello:["classic","choco"],varenko:["rafaello","condensed"],beef:["chicken","meatballs"],meatp:["chicken","beef"],curdp:["classic","apple"],condensed:["varenko","rafaello"],apple:["curdp","classic"],chopped:["chicken","meatballs"],meatballs:["chicken","chopped"]};
 function renderBundles(){
@@ -740,7 +748,7 @@ function renderBundles(){
   const total=chosen.reduce((n,p)=>n+cost(p,p.min),0);
   const unavailable=chosen.some(p=>productStatus(p.id)==="unavailable");
   const rows=chosen.map(p=>'<div class="bundle-item">'+image(p,true)+'<span>'+esc(p.name)+' · '+esc(qtyText(p,p.min))+'</span></div>').join("");
-  return '<article class="bundle-card"><div class="kicker">'+esc(bundle.tag)+'</div><h3>'+esc(bundle.name)+'</h3><p>'+esc(bundle.description)+'</p><div class="bundle-items">'+rows+'</div><div class="bundle-total"><span>Стоимость без скидки</span><strong>'+money(total)+'</strong></div><button class="btn primary" type="button" data-bundle="'+bundle.id+'" '+(unavailable?"disabled":"")+'>'+(unavailable?"Временно недоступно":"Добавить набор")+'</button></article>';
+  return '<article class="bundle-card"><div class="kicker">'+esc(bundle.tag)+'</div><h3>'+esc(bundle.name)+'</h3><p>'+esc(bundle.description)+'</p><div class="bundle-items">'+rows+'</div><div class="bundle-total"><span>Итого за набор</span><strong>'+money(total)+'</strong></div><button class="btn primary" type="button" data-bundle="'+bundle.id+'" '+(unavailable?"disabled":"")+'>'+(unavailable?"Временно недоступно":"Добавить набор")+'</button></article>';
  }).join("");
 }
 function addBundle(id){
@@ -1012,38 +1020,33 @@ function checkout(){
  closeCart();
  const orderRows=items().map(p=>`<div class="summary-row"><span>${esc(p.name)} · ${esc(qtyText(p,p.q))}</span><b>${money(p.total)}</b></div>`).join("");
  $("checkoutBody").innerHTML=`
-  <div class="kicker">LEPÍ · оформление</div>
-  <h2>Давайте оформим<br>ваш заказ.</h2>
-  <p class="checkoutintro">Оставьте контакты, чтобы мы могли уточнить детали и подтвердить заказ. Поля со звёздочкой обязательны.</p>
-  <div class="checkoutsteps" aria-label="Этапы заказа">
-   <div class="checkoutstep active"><span>1</span>Контакты</div><div class="checkoutstep"><span>2</span>Проверка</div><div class="checkoutstep"><span>3</span>Подтверждение</div>
-  </div>
+  <div class="kicker">LEPÍ</div>
+  <h2>Оформление заказа</h2>
+  <p class="checkoutintro">Оставьте контакты — мы свяжемся с вами для подтверждения.</p>
   <form id="orderForm" novalidate>
    <div class="formgrid">
     <div class="field">
-     <label for="orderName">Как к вам обращаться? <span>*</span></label>
+     <label for="orderName">Имя <span>*</span></label>
      <input id="orderName" name="customerName" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" required maxlength="80" placeholder="Ваше имя" aria-describedby="nameError">
      <span class="field-error" id="nameError">Укажите, пожалуйста, ваше имя.</span>
     </div>
     <div class="field">
-     <label for="orderPhone">Номер телефона <span>*</span></label>
+     <label for="orderPhone">Телефон <span>*</span></label>
      <input id="orderPhone" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" required maxlength="30" placeholder="+992" aria-describedby="phoneError">
      <span class="field-error" id="phoneError">Введите корректный номер телефона.</span>
     </div>
     <div class="field full">
-     <label for="orderAddress">Куда доставить? <span>*</span></label>
-     <input id="orderAddress" name="customerAddress" type="text" autocomplete="street-address" autocapitalize="sentences" enterkeyhint="next" required maxlength="250" placeholder="Улица, дом, квартира, ориентир" aria-describedby="addressError">
+     <label for="orderAddress">Адрес доставки <span>*</span></label>
+     <input id="orderAddress" name="customerAddress" type="text" autocomplete="street-address" autocapitalize="sentences" enterkeyhint="next" required maxlength="250" placeholder="Улица, дом, квартира" aria-describedby="addressError">
      <span class="field-error" id="addressError">Укажите адрес доставки в Худжанде.</span>
     </div>
     <div class="field full">
      <label for="orderComment">Комментарий <span>необязательно</span></label>
-     <textarea id="orderComment" name="customerComment" maxlength="500" autocomplete="off" enterkeyhint="done" placeholder="Например, удобное время или пожелания"></textarea>
+     <textarea id="orderComment" name="customerComment" maxlength="500" autocomplete="off" enterkeyhint="done" placeholder="Комментарий (необязательно)"></textarea>
     </div>
    </div>
    <div class="summary"><div class="summary-title">Ваш заказ</div>${orderRows}<div class="summary-total"><span>Итого за товары</span><strong>${money(sum())}</strong></div><p class="delivery-note">Доставка оплачивается отдельно. Стоимость согласуем с вами перед подтверждением.</p></div>
-   <div class="checkout-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="#i-info"/></svg><span>Проверьте контактные данные перед оформлением. Мы свяжемся с вами, чтобы подтвердить заказ и согласовать доставку.</span></div>
-   <button class="btn primary" id="submitOrder" type="submit">Подтвердить заказ ${icon("arrow")}</button>
-   <p class="fineprint">Перед отправкой проверьте имя, телефон и адрес.</p>
+   <button class="btn primary" id="submitOrder" type="submit">Отправить заказ ${icon("arrow")}</button>
   </form>`;
  openOverlay("checkoutOverlay");
  $("orderForm").addEventListener("submit",sendOrder);
@@ -1110,31 +1113,6 @@ function showOrderPrepared(tracking=null){
   cart={};updateCart();closeOverlay("checkoutOverlay");$("catalog").scrollIntoView({behavior:"smooth"});
  });
 }
-
-/* Надёжный слайдер на три слайда */
-function showGuideSlide(index){
- const slides=[...document.querySelectorAll(".guide-slide")];
- const dots=[...document.querySelectorAll(".slide-dot")];
- if(!slides.length)return;
- guideIndex=Math.max(0,Math.min(index,slides.length-1));
- $("slidesTrack").style.transform=`translateX(-${guideIndex*(100/slides.length)}%)`;
- $("guideCounter").textContent=`${guideIndex+1} из ${slides.length}`;
- slides.forEach((slide,i)=>{
-  const inactive=i!==guideIndex;
-  slide.setAttribute("aria-hidden",String(inactive));
-  slide.inert=inactive;
- });
- dots.forEach((dot,i)=>{
-  dot.classList.toggle("active",i===guideIndex);
-  if(i===guideIndex)dot.setAttribute("aria-current","step");
-  else dot.removeAttribute("aria-current");
- });
- $("prevSlide").disabled=guideIndex===0;
- $("nextSlide").disabled=guideIndex===slides.length-1;
-}
-$("prevSlide").addEventListener("click",()=>showGuideSlide(guideIndex-1));
-$("nextSlide").addEventListener("click",()=>showGuideSlide(guideIndex+1));
-document.querySelectorAll("[data-slide]").forEach(dot=>dot.addEventListener("click",()=>showGuideSlide(Number(dot.dataset.slide))));
 
 /* Каталог и корзина */
 $("products").addEventListener("click",event=>{
@@ -1249,7 +1227,6 @@ async function loadReviews(){
 
 
 $("year").textContent=new Date().getFullYear();
-showGuideSlide(0);
 render();
 renderBundles();
 loadProductStatuses();
