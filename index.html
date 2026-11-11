@@ -387,6 +387,39 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 .success .btn{margin-top:9px}
 .success-mark{width:76px;height:76px;margin:0 auto 20px;color:var(--green)}
 .success-mark svg{width:100%;height:100%;overflow:visible}
+
+.cooking-guide{margin:18px 0 20px;border:1px solid #e4e8dc;border-radius:18px;background:linear-gradient(145deg,#f5f6ef,#fffefa);overflow:hidden}
+.cooking-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:14px 15px;border:0;background:transparent;color:var(--ink);text-align:left;cursor:pointer}
+.cooking-toggle-main{display:flex;align-items:center;gap:11px;min-width:0}
+.cooking-toggle-icon{display:grid;place-items:center;width:39px;height:39px;flex:0 0 39px;border-radius:13px;background:#e9eee3;color:#65785b}
+.cooking-toggle-icon svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.cooking-toggle-copy strong{display:block;font-size:12px;font-weight:700}
+.cooking-toggle-copy small{display:block;margin-top:4px;color:#818777;font-size:10px;line-height:1.4}
+.cooking-chevron{width:19px;height:19px;flex:0 0 19px;color:#77816e;transition:transform .28s ease}
+.cooking-chevron svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cooking-toggle[aria-expanded="true"] .cooking-chevron{transform:rotate(180deg)}
+.cooking-panel{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .32s ease,opacity .25s ease}
+.cooking-panel.open{grid-template-rows:1fr;opacity:1}
+.cooking-panel-inner{overflow:hidden;min-height:0}
+.cooking-steps{padding:0 15px 15px}
+.cooking-step{display:grid;grid-template-columns:32px minmax(0,1fr);gap:10px;padding:12px 0;border-top:1px solid #e9ece4}
+.cooking-step-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#eef1e9;color:#65785b}
+.cooking-step-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cooking-step b{display:block;margin:1px 0 4px;font-size:11px}
+.cooking-step p{margin:0;color:#747b6d;font-size:10px;line-height:1.65}
+.cooking-note{margin:2px 0 0;padding:10px 11px;border-radius:11px;background:#f0eee5;color:#747567;font-size:9px;line-height:1.6}
+.success{padding:34px 5px 18px}
+.success-mark{width:82px;height:82px;margin-bottom:22px}
+.success-kicker{margin-bottom:8px;color:#78816f;font-size:9px;font-weight:700;letter-spacing:.17em;text-transform:uppercase}
+.success-summary{max-width:390px;margin:22px auto 12px;padding:16px 18px;border:1px solid #e1e6d9;border-radius:17px;background:linear-gradient(145deg,#f1f3eb,#fffefa);text-align:left}
+.success-summary-row{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:11px;color:#737a6b}
+.success-summary-row+.success-summary-row{margin-top:11px;padding-top:11px;border-top:1px solid #e3e7dd}
+.success-summary-row strong{color:#344333;font-size:15px;white-space:nowrap}
+.success-order-number{font-weight:700;color:#344333}
+.success .tracking-success{margin:12px auto 18px;padding:14px;border-radius:16px}
+.success .tracking-number{font-size:10px}
+@media(max-width:700px){.cooking-toggle{padding:12px}.cooking-steps{padding:0 12px 12px}.success{padding:26px 2px 12px}.success-summary{padding:14px}}
+
 .success-mark circle{fill:none;stroke:currentColor;stroke-width:2.5;stroke-dasharray:132;stroke-dashoffset:132;animation:circle-in .65s ease forwards}
 .success-mark path{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:34;stroke-dashoffset:34;animation:check-in .35s .55s ease forwards}
 @keyframes circle-in{to{stroke-dashoffset:0}}
@@ -720,7 +753,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 3.1</div>
+ <div class="version">Версия 3.2</div>
 </footer>
 
 <div class="mobilecart">
@@ -883,6 +916,30 @@ function ingredientMarkup(p){
  return `<ul class="ingredient-list">${list.map(item=>`<li>${esc(item)}</li>`).join("")}</ul>`;
 }
 
+const cookingGuides={
+ chicken:["Обжарьте котлеты","Разогрейте немного масла. Готовьте котлеты на умеренном огне под крышкой, периодически переворачивая.","Доведите до полной готовности внутри."],
+ classic:["Обжарьте сырники","Разогрейте сковороду с небольшим количеством масла. Готовьте на слабом или среднем огне с двух сторон до золотистой корочки.","Убавьте огонь и прогрейте сырники внутри."],
+ choco:["Обжарьте сырники","Готовьте на слабом или среднем огне с небольшим количеством масла, перевернув до румяной корочки.","Доведите до готовности внутри и подавайте тёплыми."],
+ rafaello:["Обжарьте сырники","Готовьте на слабом или среднем огне с небольшим количеством масла с двух сторон до золотистой корочки.","Доведите до готовности внутри. Подавайте тёплыми."],
+ varenko:["Обжарьте сырники","Готовьте на слабом или среднем огне с небольшим количеством масла с двух сторон до золотистой корочки.","Доведите до готовности внутри и подавайте тёплыми."],
+ beef:["Обжарьте котлеты","Разогрейте немного масла. Готовьте котлеты на умеренном огне под крышкой, переворачивая для равномерной обжарки.","Убедитесь, что котлеты полностью приготовились внутри."],
+ meatp:["Подрумяньте блинчики","Разогрейте сковороду и слегка смажьте маслом. Обжарьте блинчики на умеренном огне до румяной корочки.","Переверните и прогрейте начинку внутри."],
+ curdp:["Подрумяньте блинчики","Слегка смажьте разогретую сковороду маслом. Обжарьте блинчики с двух сторон до лёгкой золотистой корочки.","Снимите с огня, когда творожная начинка хорошо прогреется."],
+ condensed:["Подрумяньте блинчики","Слегка смажьте разогретую сковороду маслом. Обжарьте блинчики с двух сторон до лёгкой золотистой корочки.","Прогрейте начинку, не перегревая, чтобы она не вытекала."],
+ apple:["Подрумяньте блинчики","Слегка смажьте разогретую сковороду маслом. Обжарьте блинчики с двух сторон до лёгкой золотистой корочки.","Прогрейте до горячей начинки внутри и подавайте тёплыми."],
+ chopped:["Обжарьте котлеты","Разогрейте немного масла. Готовьте котлеты на умеренном или слабом огне под крышкой, периодически переворачивая.","Доведите до полной готовности внутри."],
+ meatballs:["Приготовьте фрикадельки","Добавьте фрикадельки в горячий соус или бульон. Готовьте при слабом кипении, аккуратно перемешивая.","Убедитесь, что фрикадельки полностью приготовились внутри."]
+};
+function cookingStepIcon(type){
+ if(type==="pan")return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h13a3 3 0 0 1 3 3v1H7a3 3 0 0 1-3-3v-1Z"/><path d="M20 13h2M8 12V9m4 3V8M5 19h14"/></svg>';
+ return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5"/><circle cx="12" cy="12" r="9"/></svg>';
+}
+function cookingGuideMarkup(p){
+ const guide=cookingGuides[p.id];if(!guide)return "";
+ const rows=guide.slice(1).map((text,index)=>'<div class="cooking-step"><span class="cooking-step-icon">'+cookingStepIcon(index?"check":"pan")+'</span><div><b>'+esc(index?"Проверьте готовность":guide[0])+'</b><p>'+esc(text)+'</p></div></div>').join("");
+ return '<section class="cooking-guide"><button class="cooking-toggle" type="button" data-cooking-toggle aria-expanded="false" aria-controls="cookingPanel-'+p.id+'"><span class="cooking-toggle-main"><span class="cooking-toggle-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h13a3 3 0 0 1 3 3v1H7a3 3 0 0 1-3-3v-1Z"/><path d="M20 14h2M8 13V9m4 4V7m-6 13h12"/></svg></span><span class="cooking-toggle-copy"><strong>Способ приготовления</strong><small>Нажмите, чтобы посмотреть инструкцию</small></span></span><span class="cooking-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button><div class="cooking-panel" id="cookingPanel-'+p.id+'" aria-hidden="true"><div class="cooking-panel-inner"><div class="cooking-steps">'+rows+'<p class="cooking-note">Время приготовления зависит от размера продукта и особенностей плиты. Перед подачей убедитесь, что середина полностью прогрелась.</p></div></div></div></section>';
+}
+
 function render(){
  let list=products.filter(p=>
   (category==="Все"||p.category===category)&&
@@ -934,6 +991,7 @@ function openProduct(id){
     ${ingredientMarkup(p)}
     <p class="allergen-note">В составе есть ингредиенты, которые могут быть важны при пищевой аллергии, включая молоко, яйца, пшеницу или орехи в зависимости от продукта. Если у вас аллергия, уточните информацию перед заказом.</p>
    </div>
+   ${cookingGuideMarkup(p)}
    <p>${p.mode==="pack"?"Одна единица — пачка 250 г.":"Первое добавление — минимальная партия. Дальше количество можно увеличивать по одной штуке."}</p>
    <div class="detailprice" id="detailPrice">${money(cost(p,detailQty))}</div>
    <div class="qtyrow">
@@ -1183,14 +1241,17 @@ async function sendOrder(event){
 
 function showOrderPrepared(tracking=null){
  setOrderLoading(false);
- const trackingBlock=tracking?'<div class="tracking-success"><div class="tracking-number">Номер заказа · '+esc(tracking.orderNumber)+'</div><a class="btn primary" href="'+esc(tracking.url)+'" target="_blank" rel="noopener">Отследить заказ '+icon("arrow")+'</a><p>По ссылке можно в любое время посмотреть актуальный статус заказа.</p></div>':"";
- $("checkoutBody").innerHTML=`
-  <div class="success">
-   <div class="success-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21"></circle><path d="M13 24.5 20.5 32 35 17"></path></svg></div>
-   <h2>Спасибо за заказ!</h2><p>Заказ отправлен. Мы скоро с вами свяжемся, чтобы подтвердить детали.</p>
-   ${trackingBlock}
-   <button class="btn primary" id="finish" type="button">Готово</button>
-  </div>`;
+ const trackingBlock=tracking&&tracking.url?'<div class="tracking-success"><div class="tracking-number">Номер заказа · '+esc(tracking.orderNumber||"LEPÍ")+'</div><a class="btn primary" href="'+esc(tracking.url)+'" target="_blank" rel="noopener">Отследить заказ '+icon("arrow")+'</a><p>По ссылке можно в любое время посмотреть актуальный статус заказа.</p></div>':"";
+ const orderNumber=tracking&&tracking.orderNumber?tracking.orderNumber:"Заказ принят";
+ $("checkoutBody").innerHTML=
+  '<div class="success">'+
+   '<div class="success-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21"></circle><path d="M13 24.5 20.5 32 35 17"></path></svg></div>'+
+   '<div class="success-kicker">LEPÍ · ЗАКАЗ ПОЛУЧЕН</div>'+
+   '<h2>Спасибо за заказ!</h2><p>Мы получили ваш заказ. Скоро свяжемся с вами, чтобы подтвердить детали и согласовать доставку.</p>'+
+   '<div class="success-summary"><div class="success-summary-row"><span>Номер заказа</span><b class="success-order-number">'+esc(orderNumber)+'</b></div><div class="success-summary-row"><span>Итого за товары</span><strong>'+money(sum())+'</strong></div></div>'+
+   trackingBlock+
+   '<button class="btn primary" id="finish" type="button">Вернуться в каталог</button>'+
+  '</div>';
  $("finish").addEventListener("click",()=>{
   cart={};updateCart();closeOverlay("checkoutOverlay");$("catalog").scrollIntoView({behavior:"smooth"});
  });
@@ -1209,7 +1270,19 @@ $("products").addEventListener("keydown",event=>{
  }
 });
 $("bundleGrid").addEventListener("click",event=>{const button=event.target.closest("[data-bundle]");if(button)addBundle(button.dataset.bundle)});
-$("detail").addEventListener("click",event=>{const button=event.target.closest("[data-related-add]");if(button){add(button.dataset.relatedAdd);button.textContent="✓";button.disabled=true}});
+$("detail").addEventListener("click",event=>{
+ const toggle=event.target.closest("[data-cooking-toggle]");
+ if(toggle){
+  const panel=$(toggle.getAttribute("aria-controls"));
+  const expanded=toggle.getAttribute("aria-expanded")==="true";
+  toggle.setAttribute("aria-expanded",String(!expanded));
+  panel.classList.toggle("open",!expanded);
+  panel.setAttribute("aria-hidden",String(expanded));
+  return;
+ }
+ const button=event.target.closest("[data-related-add]");
+ if(button){add(button.dataset.relatedAdd);button.textContent="✓";button.disabled=true}
+});
 $("cartBody").addEventListener("click",event=>{const button=event.target.closest("[data-cart-add]");if(button){add(button.dataset.cartAdd);button.textContent="✓";button.disabled=true}});
 $("filters").addEventListener("click",event=>{
  const button=event.target.closest("[data-filter]");
