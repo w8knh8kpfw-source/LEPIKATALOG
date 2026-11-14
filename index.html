@@ -7,6 +7,7 @@
 <meta name="description" content="LEPÍ — домашние полуфабрикаты в Худжанде. Сырники, блинчики, котлеты и фрикадельки.">
 <title>LEPÍ — вкус домашнего уюта</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="module" src="https://cdn.jsdelivr.net/npm/simple-liquid-glass/web-component"></script>
 
 <style>
 :root{
@@ -124,13 +125,12 @@ section.block{padding:26px 0 65px}
 .season h2{font-size:clamp(43px,5vw,65px)}
 .season p{font-size:12px;line-height:1.9;color:#73796a;max-width:370px;margin:15px 0 22px}
 .seasonphoto{height:320px;border-radius:23px;overflow:hidden;cursor:pointer}
-.filters{position:relative;isolation:isolate;display:flex;align-items:center;gap:3px;width:max-content;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:5px;margin:23px 0 17px;border:1px solid #ffffffd9;border-radius:999px;background:linear-gradient(145deg,#ffffffa8,#ffffff55);box-shadow:inset 0 1px 0 #fff,0 8px 24px #35432a0b;-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%)}
+.filters-stage{position:relative;display:inline-block;max-width:100%;margin:23px 0 17px}
+.filters{position:relative;display:flex;align-items:center;gap:3px;width:max-content;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:5px;margin:0;border:1px solid #ffffffd9;border-radius:999px;background:#ffffff42;box-shadow:inset 0 1px 0 #fff8,0 8px 24px #35432a0b}
 .filters::-webkit-scrollbar{display:none}
-.filter-indicator{position:absolute;z-index:0;left:0;top:4px;bottom:4px;width:0;border-radius:999px;opacity:0;overflow:hidden;background:linear-gradient(155deg,#ffffff45 0%,#ffffff18 38%,#dce8d333 72%,#ffffff30 100%);border:1px solid #ffffffd9;box-shadow:inset 0 1.5px 1px #ffffffed,inset 0 -1px 1px #ffffff70,inset 1px 0 1px #ffffff8c,0 2px 5px #40513b12,0 8px 20px #40513b18;backdrop-filter:blur(16px) saturate(220%) contrast(108%);-webkit-backdrop-filter:blur(16px) saturate(220%) contrast(108%);transition:transform .52s cubic-bezier(.2,.85,.25,1),width .52s cubic-bezier(.2,.85,.25,1),opacity .2s ease;pointer-events:none}
-.filter-indicator:before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(ellipse at 22% 0%,#ffffffd9 0%,#ffffff70 17%,transparent 52%),linear-gradient(115deg,#ffffff55 0%,transparent 35%,#ffffff20 68%,#ffffff80 100%);opacity:.9;pointer-events:none}
-.filter-indicator:after{content:"";position:absolute;left:9%;right:9%;top:1px;height:38%;border-radius:999px;background:linear-gradient(180deg,#ffffffd9,#ffffff54 45%,#ffffff00);filter:blur(.35px);opacity:.8;pointer-events:none}
-.filter{position:relative;z-index:1;flex:0 0 auto;min-height:39px;padding:0 16px;border:1px solid transparent;border-radius:999px;background:transparent;color:#73796b;font-size:11px;white-space:nowrap;transition:color .25s ease,transform .25s ease}
-.filter.active{color:#fff}
+#filterIndicator{position:absolute;z-index:1;left:0;top:0;width:0;height:0;display:block;pointer-events:none;opacity:0;--glass-border-radius:999px;transition:transform .48s cubic-bezier(.2,.85,.25,1),width .48s cubic-bezier(.2,.85,.25,1),height .48s cubic-bezier(.2,.85,.25,1),opacity .2s ease}
+.filter{position:relative;z-index:2;flex:0 0 auto;min-height:39px;padding:0 16px;border:1px solid transparent;border-radius:999px;background:transparent;color:#73796b;font-size:11px;white-space:nowrap;transition:color .25s ease,transform .25s ease}
+.filter.active{color:var(--deep);font-weight:700}
 .filter:hover:not(.active){color:var(--deep)}
 .filter:active{transform:scale(.97)}
 .filter:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
@@ -677,13 +677,15 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
 
 <section class="block" id="catalog">
  <div class="head"><div><div class="kicker">Наше меню</div><h2>Каталог LEPÍ</h2><p class="sub">Нажмите на карточку для подробностей. Первое добавление — минимальная партия.</p></div></div>
- <div class="filters" id="filters" role="group" aria-label="Категории товаров">
-   <span class="filter-indicator" id="filterIndicator" aria-hidden="true"></span>
+ <div class="filters-stage" id="filtersStage">
+  <div class="filters" id="filters" role="group" aria-label="Категории товаров">
   <button class="filter active" data-filter="Все" type="button" aria-pressed="true">Всё меню</button>
   <button class="filter" data-filter="Блинчики" type="button" aria-pressed="false">Блинчики</button>
   <button class="filter" data-filter="Сырники" type="button" aria-pressed="false">Сырники</button>
   <button class="filter" data-filter="Котлеты" type="button" aria-pressed="false">Котлеты</button>
   <button class="filter" data-filter="Фрикадельки" type="button" aria-pressed="false">Фрикадельки</button>
+  </div>
+  <liquid-glass id="filterIndicator" backdrop-selector="#filters" lens-profile="player" strength="0.16" radius="999" frost="0.08" blur="0" saturation="155" displace="7" scale="160" aria-hidden="true"></liquid-glass>
  </div>
  <div class="searchrow">
   <div class="searchwrap"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg><input class="search" id="search" type="search" placeholder="Найти любимое блюдо…" aria-label="Поиск по меню"></div>
@@ -980,10 +982,12 @@ function render(){
 }
 
 function moveFilterIndicator(button,scrollIntoView=true){
- const indicator=$("filterIndicator"),container=$("filters");
- if(!indicator||!button||!container)return;
- indicator.style.width=button.offsetWidth+"px";
- indicator.style.transform="translateX("+button.offsetLeft+"px)";
+ const indicator=$("filterIndicator"),stage=$("filtersStage");
+ if(!indicator||!button||!stage)return;
+ const b=button.getBoundingClientRect(),s=stage.getBoundingClientRect();
+ indicator.style.width=b.width+"px";
+ indicator.style.height=b.height+"px";
+ indicator.style.transform="translate("+Math.round(b.left-s.left)+"px,"+Math.round(b.top-s.top)+"px)";
  indicator.style.opacity="1";
  if(scrollIntoView)button.scrollIntoView({behavior:"smooth",block:"nearest",inline:"nearest"});
 }
@@ -991,6 +995,7 @@ function syncFilterIndicator(){
  const active=$("filters").querySelector(".filter.active");
  if(active)moveFilterIndicator(active,false);
 }
+customElements.whenDefined("liquid-glass").then(()=>requestAnimationFrame(syncFilterIndicator));
 function setCategory(value){
  category=value;
  document.querySelectorAll("[data-filter]").forEach(button=>{
