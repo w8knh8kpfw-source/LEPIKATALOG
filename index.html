@@ -128,7 +128,7 @@ section.block{padding:26px 0 65px}
 .filters-stage{position:relative;display:inline-block;max-width:100%;margin:23px 0 17px}
 .filters{position:relative;display:flex;align-items:center;gap:3px;width:max-content;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:5px;margin:0;border:1px solid #ffffffd9;border-radius:999px;background:#ffffff42;box-shadow:inset 0 1px 0 #fff8,0 8px 24px #35432a0b}
 .filters::-webkit-scrollbar{display:none}
-.filters-stage>liquid-glass#filterIndicator{position:absolute;z-index:1;left:0;top:0;display:block;width:0;height:0;pointer-events:none;opacity:0;overflow:hidden;--glass-border-radius:999px;transition:transform .48s cubic-bezier(.2,.85,.25,1),width .48s cubic-bezier(.2,.85,.25,1),height .48s cubic-bezier(.2,.85,.25,1),opacity .2s ease}
+.filters-stage>liquid-glass#filterIndicator{position:absolute;z-index:1;left:0;top:0;display:block;width:0;height:0;pointer-events:none;opacity:0;overflow:hidden;--glass-border-radius:999px;transition:transform .58s cubic-bezier(.22,.8,.2,1),width .58s cubic-bezier(.22,.8,.2,1),height .58s cubic-bezier(.22,.8,.2,1),opacity .18s ease;will-change:transform,width,height}
 .filter{position:relative;z-index:2;flex:0 0 auto;min-height:39px;padding:0 16px;border:1px solid transparent;border-radius:999px;background:transparent;color:#73796b;font-size:11px;white-space:nowrap;transition:color .25s ease,transform .25s ease}
 .filter.active{color:var(--deep);font-weight:700;border-color:#87977b;background:linear-gradient(180deg,#ffffffd9,#f5f7f0c9);box-shadow:inset 0 1px 0 #ffffff,0 2px 9px #43583e18;}
 .filter:hover:not(.active){color:var(--deep)}
@@ -766,7 +766,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 3.8</div>
+ <div class="version">Версия 3.9</div>
 </footer>
 
 <div class="mobilecart">
@@ -981,11 +981,12 @@ function render(){
  $("emptyResults").style.display=list.length?"none":"block";
 }
 
+let filterIndicatorReady=false;
 function moveFilterIndicator(button,scrollIntoView=true){
  const indicator=$("filterIndicator"),stage=$("filtersStage");
  if(!indicator||!button||!stage)return;
  const b=button.getBoundingClientRect(),s=stage.getBoundingClientRect();
- const x=Math.round(b.left-s.left+stage.scrollLeft);
+ const x=Math.round(b.left-s.left);
  const y=Math.round(b.top-s.top);
  indicator.style.width=b.width+"px";
  indicator.style.height=b.height+"px";
@@ -995,7 +996,17 @@ function moveFilterIndicator(button,scrollIntoView=true){
 }
 function syncFilterIndicator(){
  const active=$("filters").querySelector(".filter.active");
- if(active)moveFilterIndicator(active,false);
+ if(!active)return;
+ const indicator=$("filterIndicator");
+ if(!indicator)return;
+ indicator.style.transition="none";
+ moveFilterIndicator(active,false);
+ requestAnimationFrame(()=>{
+  requestAnimationFrame(()=>{
+   indicator.style.transition="";
+   filterIndicatorReady=true;
+  });
+ });
 }
 customElements.whenDefined("liquid-glass").then(()=>requestAnimationFrame(syncFilterIndicator));
 function setCategory(value){
