@@ -766,7 +766,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 3.7</div>
+ <div class="version">Версия 3.8</div>
 </footer>
 
 <div class="mobilecart">
@@ -985,9 +985,11 @@ function moveFilterIndicator(button,scrollIntoView=true){
  const indicator=$("filterIndicator"),stage=$("filtersStage");
  if(!indicator||!button||!stage)return;
  const b=button.getBoundingClientRect(),s=stage.getBoundingClientRect();
+ const x=Math.round(b.left-s.left+stage.scrollLeft);
+ const y=Math.round(b.top-s.top);
  indicator.style.width=b.width+"px";
  indicator.style.height=b.height+"px";
- indicator.style.transform="translate("+Math.round(b.left-s.left)+"px,"+Math.round(b.top-s.top)+"px)";
+ indicator.style.transform="translate3d("+x+"px,"+y+"px,0)";
  indicator.style.opacity="1";
  if(scrollIntoView)button.scrollIntoView({behavior:"smooth",block:"nearest",inline:"nearest"});
 }
