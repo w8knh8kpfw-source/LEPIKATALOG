@@ -43,6 +43,55 @@ h1{font:500 clamp(43px,8vw,65px)/.95 "Cormorant Garamond",serif;letter-spacing:-
 .info{font-size:10px;line-height:1.8;color:var(--muted);margin:18px 0 0}.error{padding:22px;text-align:center;border:1px solid white;border-radius:22px;background:#ffffff91;color:var(--muted);font-size:12px;line-height:1.8}
 .error strong{display:block;font:500 29px "Cormorant Garamond",serif;color:var(--ink);margin-bottom:8px}
 footer{text-align:center;padding:22px;color:var(--muted);font-size:10px}@media(max-width:480px){.top{padding:18px 5%}.back{font-size:11px}main{margin:35px auto 50px}.paper{border-radius:22px}}
+
+
+/* LEPÍ clear Liquid Glass — shared page finish */
+body{
+ background:
+  radial-gradient(ellipse at 10% 7%,rgba(204,222,186,.58),transparent 35%),
+  radial-gradient(ellipse at 91% 35%,rgba(242,221,192,.48),transparent 36%),
+  radial-gradient(ellipse at 48% 95%,rgba(224,233,213,.38),transparent 40%),
+  #f4f1e8;
+}
+.top{
+ background:rgba(245,244,236,.27);
+ border-bottom:1px solid rgba(255,255,255,.66);
+ box-shadow:0 9px 35px rgba(54,67,44,.05),inset 0 1px rgba(255,255,255,.7);
+ backdrop-filter:blur(34px) saturate(190%);
+ -webkit-backdrop-filter:blur(34px) saturate(190%);
+}
+.paper{
+ position:relative;
+ overflow:hidden;
+ background:linear-gradient(145deg,rgba(255,255,255,.29),rgba(255,255,255,.105) 52%,rgba(230,239,221,.17));
+ border:1px solid rgba(255,255,255,.76);
+ box-shadow:0 22px 60px rgba(48,62,38,.10),inset 0 1px rgba(255,255,255,.88),inset 0 -1px rgba(255,255,255,.18);
+ backdrop-filter:blur(32px) saturate(190%);
+ -webkit-backdrop-filter:blur(32px) saturate(190%);
+}
+.paper::before{
+ content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(132deg,rgba(255,255,255,.28),transparent 30%,transparent 72%,rgba(255,255,255,.08));
+}
+.paper>*{position:relative;z-index:1}
+section{border-color:rgba(255,255,255,.35)}
+.note,.status,.item,.error,.cancelled-panel{
+ background:rgba(255,255,255,.20);
+ border:1px solid rgba(255,255,255,.58);
+ box-shadow:inset 0 1px rgba(255,255,255,.66);
+ backdrop-filter:blur(22px) saturate(180%);
+ -webkit-backdrop-filter:blur(22px) saturate(180%);
+}
+.status{background:rgba(220,235,210,.36)}
+.item{background:rgba(255,255,255,.18)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ .paper{background:rgba(255,255,255,.93)}
+}
+@media(prefers-reduced-motion:no-preference){
+ .paper{animation:glass-arrive .7s cubic-bezier(.2,.75,.2,1) both}
+ @keyframes glass-arrive{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+}
+
 </style></head><body>
 <header class="top"><nav class="nav"><a class="logo" href="index.html">LEP<span>Í</span></a><a class="back" href="index.html">← Вернуться в каталог</a></nav></header>
 <main><div class="kicker">LEPÍ · информация о заказе</div><h1>Ваш заказ</h1><p class="sub">Здесь можно посмотреть текущий статус. Страница обновляется автоматически.</p>
