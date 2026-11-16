@@ -555,6 +555,128 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
  .checkout-progress{margin:16px 0 21px}
 }
 
+
+
+/* LEPI Regular Glass — translucent, warm glass surfaces */
+:root{
+ --glass-white:rgba(255,255,255,.58);
+ --glass-edge:rgba(255,255,255,.82);
+ --glass-shadow:0 18px 48px rgba(53,66,43,.10),inset 0 1px 0 rgba(255,255,255,.92);
+ --glass-blur:blur(26px) saturate(165%);
+}
+body{
+ background:
+  radial-gradient(ellipse at 12% 4%,rgba(220,231,207,.72),transparent 34%),
+  radial-gradient(ellipse at 91% 24%,rgba(245,226,199,.72),transparent 34%),
+  radial-gradient(ellipse at 52% 88%,rgba(226,233,216,.46),transparent 38%),
+  #f4f1e8;
+}
+.igbar{
+ background:rgba(255,255,255,.36);
+ border-bottom:1px solid rgba(255,255,255,.7);
+ backdrop-filter:var(--glass-blur);
+ -webkit-backdrop-filter:var(--glass-blur);
+}
+header{
+ background:rgba(248,247,240,.56);
+ border-bottom:1px solid rgba(255,255,255,.78);
+ box-shadow:0 8px 30px rgba(56,68,46,.045),inset 0 1px rgba(255,255,255,.8);
+ backdrop-filter:blur(30px) saturate(175%);
+ -webkit-backdrop-filter:blur(30px) saturate(175%);
+}
+.glass,
+.trust article,
+.season,
+.story,
+.step,
+.guide,
+.guide-step,
+.review-panel,
+.insta,
+.checkout,
+.detail,
+.product{
+ background:
+  linear-gradient(145deg,rgba(255,255,255,.76),rgba(255,255,255,.34) 54%,rgba(245,247,239,.48));
+ border:1px solid rgba(255,255,255,.88);
+ box-shadow:var(--glass-shadow);
+ backdrop-filter:var(--glass-blur);
+ -webkit-backdrop-filter:var(--glass-blur);
+}
+.product{
+ border-radius:23px;
+ box-shadow:0 12px 34px rgba(55,67,45,.075),inset 0 1px 0 rgba(255,255,255,.95);
+}
+.product:hover{
+ box-shadow:0 22px 48px rgba(55,67,45,.14),inset 0 1px 0 rgba(255,255,255,.98);
+}
+.season,.story,.guide,.checkout,.detail{box-shadow:0 20px 55px rgba(55,67,45,.09),inset 0 1px 0 rgba(255,255,255,.96)}
+.iconbtn,.secondary,.search,.sort,.filters,.pill,.float,.summary,.checkout-final-summary{
+ background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(255,255,255,.43));
+ border-color:rgba(255,255,255,.9);
+ box-shadow:0 7px 22px rgba(54,67,44,.055),inset 0 1px 0 rgba(255,255,255,.95);
+ backdrop-filter:blur(20px) saturate(160%);
+ -webkit-backdrop-filter:blur(20px) saturate(160%);
+}
+.btn{
+ position:relative;
+ overflow:hidden;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.48),0 7px 18px rgba(54,67,44,.08);
+}
+.primary{
+ background:linear-gradient(135deg,rgba(133,154,116,.96),rgba(75,99,67,.98));
+ border:1px solid rgba(255,255,255,.48);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 10px 25px rgba(67,88,62,.22);
+}
+.primary:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.56),0 14px 30px rgba(67,88,62,.25)}
+.iconbtn{border-radius:17px}
+.filters{
+ background:rgba(255,255,255,.38);
+ border:1px solid rgba(255,255,255,.9);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 12px 28px rgba(54,67,44,.07);
+ backdrop-filter:blur(24px) saturate(175%);
+ -webkit-backdrop-filter:blur(24px) saturate(175%);
+}
+.filter.active{
+ background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(241,245,235,.72));
+ border-color:rgba(255,255,255,.98);
+ box-shadow:inset 0 1px 0 #fff,0 4px 14px rgba(67,88,62,.13);
+}
+.prodimg,.heroimg,.seasonphoto,.storyphoto{
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+}
+.badge{
+ background:rgba(255,255,255,.76);
+ border-color:rgba(255,255,255,.96);
+ box-shadow:0 4px 14px rgba(35,45,29,.08),inset 0 1px #fff;
+ backdrop-filter:blur(16px) saturate(160%);
+ -webkit-backdrop-filter:blur(16px) saturate(160%);
+}
+.mobilecart{
+ background:rgba(250,250,245,.62);
+ border:1px solid rgba(255,255,255,.92);
+ box-shadow:0 14px 42px rgba(48,59,37,.14),inset 0 1px 0 rgba(255,255,255,.96);
+ backdrop-filter:blur(30px) saturate(180%);
+ -webkit-backdrop-filter:blur(30px) saturate(180%);
+}
+.overlay{
+ background:rgba(48,57,43,.24);
+ backdrop-filter:blur(9px) saturate(115%);
+ -webkit-backdrop-filter:blur(9px) saturate(115%);
+}
+.checkout{
+ background:linear-gradient(145deg,rgba(255,255,255,.91),rgba(249,250,245,.78));
+ border-color:rgba(255,255,255,.96);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ .glass,.trust article,.season,.story,.step,.guide,.guide-step,.review-panel,.insta,.checkout,.detail,.product,.mobilecart{background:rgba(255,255,255,.94)}
+}
+@media(max-width:700px){
+ header{background:rgba(248,247,240,.72)}
+ .mobilecart{background:rgba(250,250,245,.78)}
+ .product{border-radius:19px}
+}
+
 </style>
 </head>
 
@@ -766,7 +888,7 @@ footer{padding:32px 5%;background:#ffffff42;border-top:1px solid #ffffffaa}
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 3.9</div>
+ <div class="version">Версия 4.0</div>
 </footer>
 
 <div class="mobilecart">
