@@ -838,6 +838,41 @@ header{
  .prodimg img,.detailimg img{transition:none}
 }
 
+
+
+/* LEPÍ layout repair 4.2 — keep glass highlights behind content */
+.glass>*,
+.season>*,
+.story>*,
+.guide>*,
+.review-panel>*,
+.insta>*,
+.checkout>*,
+.detail>*,
+.product>*{
+ position:relative;
+ z-index:1;
+}
+.glass::before,
+.season::before,
+.story::before,
+.guide::before,
+.review-panel::before,
+.insta::before,
+.checkout::before,
+.detail::before,
+.product::before{
+ z-index:0;
+ pointer-events:none;
+}
+.product>.prodimg{margin-bottom:0}
+.product>.prodinfo{padding-top:12px}
+.detailcopy{margin-top:0;padding-top:16px}
+@media(max-width:700px){
+ .product>.prodimg{margin-bottom:0}
+ .detailcopy{margin-top:0;padding-top:12px}
+}
+
 </style>
 </head>
 
@@ -1049,7 +1084,7 @@ header{
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 4.1</div>
+ <div class="version">Версия 4.2</div>
 </footer>
 
 <div class="mobilecart">
