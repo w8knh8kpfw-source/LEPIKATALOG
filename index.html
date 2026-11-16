@@ -873,6 +873,224 @@ header{
  .detailcopy{margin-top:0;padding-top:12px}
 }
 
+
+
+/* LEPÍ cart & checkout refinement 4.3 */
+.drawer{
+ width:min(490px,100%);
+ background:linear-gradient(145deg,rgba(249,250,245,.84),rgba(238,242,231,.68));
+ border-left:1px solid rgba(255,255,255,.78);
+ backdrop-filter:blur(34px) saturate(175%);
+ -webkit-backdrop-filter:blur(34px) saturate(175%);
+}
+.drawerhead{
+ flex:0 0 auto;
+ padding:22px 23px 18px;
+ border:0;
+ border-bottom:1px solid rgba(255,255,255,.62);
+ background:rgba(255,255,255,.13);
+}
+.drawerhead h2{font-size:40px;letter-spacing:-.02em}
+.drawerbody{
+ padding:18px 18px 24px;
+ overscroll-behavior:contain;
+}
+.cartline{
+ display:grid;
+ grid-template-columns:76px minmax(0,1fr);
+ align-items:center;
+ gap:13px;
+ margin:0 0 12px;
+ padding:13px;
+ border:1px solid rgba(255,255,255,.78);
+ border-radius:20px;
+ background:linear-gradient(145deg,rgba(255,255,255,.40),rgba(255,255,255,.15));
+ box-shadow:0 9px 24px rgba(54,67,44,.055),inset 0 1px rgba(255,255,255,.78);
+}
+.cartthumb{
+ width:76px;height:78px;
+ border:1px solid rgba(255,255,255,.78);
+ border-radius:15px;
+ box-shadow:0 4px 13px rgba(54,67,44,.07);
+}
+.cartdetails{min-width:0}
+.cartline-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
+.cartline-heading strong{
+ min-width:0;
+ font-size:12px;
+ line-height:1.45;
+ margin:0;
+}
+.cart-unit{display:block;margin-top:4px;font-size:10px;color:var(--muted)}
+.cartline .lineprice{flex:0 0 auto;font-size:12px;color:var(--deep);padding-top:1px}
+.cartactions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px}
+.quantity-control{
+ display:inline-flex;align-items:center;gap:7px;
+ padding:3px;
+ border:1px solid rgba(255,255,255,.82);
+ border-radius:13px;
+ background:rgba(255,255,255,.28);
+}
+.minibtn{
+ width:30px;height:30px;
+ border-radius:10px;
+ border:1px solid rgba(255,255,255,.8);
+ background:rgba(255,255,255,.48);
+ box-shadow:0 2px 8px rgba(54,67,44,.045);
+}
+.cart-quantity{min-width:20px;text-align:center;font-size:12px;font-weight:700;color:var(--ink)}
+.remove{
+ display:inline-flex;align-items:center;gap:5px;
+ width:auto;height:30px;padding:0 5px;
+ border-radius:9px;color:#8b8e82;font-size:10px;
+}
+.remove svg{width:14px;height:14px}
+.remove span{display:inline}
+.drawerfoot{
+ flex:0 0 auto;
+ padding:16px 19px calc(19px + env(safe-area-inset-bottom));
+ border:0;
+ border-top:1px solid rgba(255,255,255,.7);
+ background:rgba(248,249,243,.34);
+ box-shadow:0 -8px 25px rgba(54,67,44,.035);
+}
+.drawerfoot .total{
+ padding:13px 15px;
+ margin:0 0 8px;
+ border:1px solid rgba(255,255,255,.75);
+ border-radius:16px;
+ background:rgba(255,255,255,.27);
+}
+.drawerfoot .total strong{font-size:21px;color:var(--deep)}
+.drawerfoot .deliverywarn{margin:8px 3px 12px;line-height:1.65}
+.privacy-consent{
+ padding:13px 14px;
+ border-radius:16px;
+ background:rgba(255,255,255,.31);
+ border-color:rgba(255,255,255,.82);
+ line-height:1.7;
+}
+#checkoutBtn{min-height:53px;border-radius:16px}
+.empty{padding:58px 16px}
+.empty .btn{margin-top:17px}
+
+.modal.checkout{
+ width:min(540px,100%);
+ max-height:min(90dvh,850px);
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ padding:30px 31px 27px;
+ border-radius:29px;
+ background:linear-gradient(145deg,rgba(249,250,246,.88),rgba(238,242,233,.72));
+ border:1px solid rgba(255,255,255,.88);
+ box-shadow:0 30px 90px rgba(31,42,26,.23),inset 0 1px rgba(255,255,255,.9);
+ scrollbar-width:thin;
+ scrollbar-color:rgba(102,123,91,.28) transparent;
+}
+.modal.checkout>#checkoutBody{position:relative;z-index:1;padding-top:14px}
+.modal.checkout>.close{
+ position:sticky;
+ float:right;
+ top:0;
+ right:auto;
+ margin:0 0 -38px auto;
+ background:rgba(255,255,255,.56);
+ border:1px solid rgba(255,255,255,.86);
+ backdrop-filter:blur(18px);
+ -webkit-backdrop-filter:blur(18px);
+}
+.checkout-progress{gap:8px;margin:19px 0 27px}
+.checkout-progress-step{height:5px;background:rgba(119,132,105,.15)}
+.checkout-progress-step.active,.checkout-progress-step.done{background:linear-gradient(90deg,#91a482,#607956)}
+.checkout-stage{padding:2px 1px 1px}
+.checkout-art{
+ width:58px;height:58px;margin-bottom:16px;
+ border-radius:19px;
+ background:linear-gradient(145deg,rgba(255,255,255,.64),rgba(223,232,214,.42));
+ border:1px solid rgba(255,255,255,.88);
+ box-shadow:inset 0 1px rgba(255,255,255,.9),0 8px 20px rgba(54,67,44,.06);
+}
+.checkout-art svg{width:34px;height:34px}
+.checkout-stage h3{font-size:32px;line-height:1.08;margin-bottom:9px}
+.checkout-stage>p{font-size:12px;line-height:1.75;margin-bottom:22px;max-width:410px}
+.checkout-stage .field{gap:7px;margin-bottom:17px}
+.checkout-stage .field label{font-size:11px;padding:2px 3px}
+.checkout-stage .field input,.checkout-stage .field textarea{
+ min-height:54px;
+ padding:14px 16px;
+ border-radius:16px;
+ border:1px solid rgba(255,255,255,.94);
+ background:rgba(255,255,255,.56);
+ box-shadow:inset 0 1px rgba(255,255,255,.85),0 5px 17px rgba(54,67,44,.035);
+}
+.checkout-stage .field textarea{min-height:88px}
+.checkout-stage .field input:focus,.checkout-stage .field textarea:focus{
+ border-color:rgba(119,145,104,.7);
+ background:rgba(255,255,255,.76);
+ box-shadow:0 0 0 3px rgba(119,145,104,.13),inset 0 1px rgba(255,255,255,.9);
+}
+.checkout-nav{gap:11px;margin-top:22px}
+.checkout-nav .btn{min-height:52px;border-radius:16px}
+.checkout-back{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.9)}
+.checkout-final-summary{
+ margin:20px 0 17px;
+ padding:16px;
+ border-radius:19px;
+ background:rgba(255,255,255,.25);
+ border:1px solid rgba(255,255,255,.78);
+}
+.checkout-final-summary .summary{
+ padding:0;
+ background:transparent;
+ border:0;
+ box-shadow:none;
+ backdrop-filter:none;
+ -webkit-backdrop-filter:none;
+}
+.checkout .summary-title{font-size:13px;margin-bottom:11px}
+.checkout .summary-row{
+ align-items:flex-start;
+ gap:14px;
+ padding:9px 0;
+ border-bottom:1px solid rgba(255,255,255,.56);
+ font-size:11px;
+ line-height:1.55;
+}
+.checkout .summary-row b{color:var(--deep)}
+.checkout .summary-total{margin-top:11px;padding-top:13px;border-color:rgba(102,123,91,.2)}
+.checkout .delivery-note{margin-top:11px;line-height:1.7}
+.checkout .checkout-nav .primary{box-shadow:0 9px 23px rgba(67,88,62,.2),inset 0 1px rgba(255,255,255,.45)}
+@media(max-width:700px){
+ .drawer{width:100%;border-left:0;border-radius:0}
+ .drawerhead{padding:calc(17px + env(safe-area-inset-top)) 17px 14px}
+ .drawerhead h2{font-size:36px}
+ .drawerbody{padding:14px 13px 20px}
+ .cartline{grid-template-columns:68px minmax(0,1fr);gap:11px;padding:11px;border-radius:18px;margin-bottom:10px}
+ .cartthumb{width:68px;height:72px;border-radius:14px}
+ .cartline-heading strong{font-size:11px}
+ .cartline .lineprice{font-size:11px}
+ .drawerfoot{padding:12px 13px calc(13px + env(safe-area-inset-bottom))}
+ .remove span{display:none}
+ .remove{width:30px;justify-content:center}
+ .modal.checkout{
+  width:100%;
+  max-height:calc(100dvh - 20px - env(safe-area-inset-top));
+  padding:24px 18px 20px;
+  border-radius:25px;
+ }
+ .modal.checkout>#checkoutBody{padding-top:13px}
+ .checkout-stage h3{font-size:29px}
+ .checkout-stage>p{font-size:11px;margin-bottom:19px}
+ .checkout-final-summary{padding:13px;margin:17px 0}
+ .checkout-nav .btn{min-height:49px;font-size:11px;padding:0 12px}
+}
+@media(max-width:360px){
+ .cartline{grid-template-columns:58px minmax(0,1fr);gap:9px;padding:9px}
+ .cartthumb{width:58px;height:64px}
+ .cartactions{gap:5px}
+ .quantity-control{gap:4px}
+}
+
 </style>
 </head>
 
@@ -1084,7 +1302,7 @@ header{
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 4.2</div>
+ <div class="version">Версия 4.3</div>
 </footer>
 
 <div class="mobilecart">
@@ -1415,18 +1633,21 @@ function updateCart(){
   return;
  }
  $("cartBody").innerHTML=list.map(p=>`
-  <div class="cartline">
+  <article class="cartline">
    <div class="cartthumb">${image(p,true)}</div>
-   <div><strong>${esc(p.name)}</strong><small>${esc(qtyText(p,p.q))}</small>
+   <div class="cartdetails">
+    <div class="cartline-heading"><strong>${esc(p.name)}</strong><span class="lineprice">${money(p.total)}</span></div>
+    <small class="cart-unit">${esc(qtyText(p,p.q))}</small>
     <div class="cartactions">
-     <button class="minibtn" data-minus="${p.id}" type="button" aria-label="Уменьшить количество">${icon("minus")}</button>
-     <span>${p.q}</span>
-     <button class="minibtn" data-plus="${p.id}" type="button" aria-label="Увеличить количество">${icon("plus")}</button>
-     <button class="remove" data-remove="${p.id}" type="button" aria-label="Удалить товар">${icon("trash")}</button>
+     <div class="quantity-control">
+      <button class="minibtn" data-minus="${p.id}" type="button" aria-label="Уменьшить количество">${icon("minus")}</button>
+      <span class="cart-quantity">${p.q}</span>
+      <button class="minibtn" data-plus="${p.id}" type="button" aria-label="Увеличить количество">${icon("plus")}</button>
+     </div>
+     <button class="remove" data-remove="${p.id}" type="button" aria-label="Удалить товар">${icon("trash")}<span>Удалить</span></button>
     </div>
    </div>
-   <div class="lineprice">${money(p.total)}</div>
-  </div>
+  </article>
  `).join("")+cartSuggestionMarkup(list);
  $("cartFoot").innerHTML=`
   <div class="total"><span>Товары · ${count()} шт./пачек</span><strong>${money(sum())}</strong></div>
