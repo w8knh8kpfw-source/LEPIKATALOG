@@ -1091,6 +1091,34 @@ header{
  .quantity-control{gap:4px}
 }
 
+
+
+/* Hero label typography refinement 4.4 */
+.heroart .float.two{
+ width:max-content;
+ min-width:0;
+ max-width:190px;
+ padding:15px 19px 14px;
+ border-radius:20px;
+}
+.heroart .float.two strong{
+ display:block;
+ width:max-content;
+ font-size:29px;
+ line-height:.88;
+ letter-spacing:-.035em;
+ white-space:normal;
+}
+.heroart .float.two p{
+ max-width:145px;
+ line-height:1.5;
+ margin-top:9px;
+}
+@media(max-width:700px){
+ .heroart .float.two{max-width:175px;padding:13px 16px}
+ .heroart .float.two strong{font-size:27px}
+}
+
 </style>
 </head>
 
@@ -1157,7 +1185,7 @@ header{
  <div class="heroart">
   <div class="heroimg"><img src="images/hero-bags.jpg" alt="Фирменная упаковка LEPÍ" onerror="this.style.display='none'"></div>
   <div class="float glass one"><small>Наш принцип</small><strong>Как дома</strong></div>
-  <div class="float glass two"><small>LEPÍ · Худжанд</small><strong>Просто. Вкусно.</strong><p>Чтобы дома было уютнее.</p></div>
+  <div class="float glass two"><small>LEPÍ · Худжанд</small><strong>Просто.<br>Вкусно.</strong><p>Чтобы дома было уютнее.</p></div>
  </div>
 </section>
 
@@ -1302,7 +1330,7 @@ header{
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 4.3</div>
+ <div class="version">Версия 4.4</div>
 </footer>
 
 <div class="mobilecart">
