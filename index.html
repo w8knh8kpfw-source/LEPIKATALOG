@@ -677,6 +677,167 @@ header{
  .product{border-radius:19px}
 }
 
+
+
+/* LEPÍ Liquid Glass v2 — clear optical glass, not milky panels */
+:root{
+ --lg-tint:rgba(250,251,246,.17);
+ --lg-edge:rgba(255,255,255,.62);
+ --lg-specular:rgba(255,255,255,.88);
+ --lg-shadow:0 18px 48px rgba(48,62,38,.105),inset 0 1px 0 rgba(255,255,255,.78),inset 0 -1px 0 rgba(255,255,255,.16);
+}
+body{
+ background:
+  radial-gradient(ellipse at 12% 8%,rgba(205,222,187,.56),transparent 34%),
+  radial-gradient(ellipse at 88% 32%,rgba(240,218,187,.48),transparent 36%),
+  radial-gradient(ellipse at 54% 92%,rgba(222,231,211,.4),transparent 38%),
+  #f4f1e8;
+}
+.glass,.trust article,.season,.story,.step,.guide,.guide-step,.review-panel,.insta,
+.checkout,.detail,.product,.newcard,.review-card,.bundle-card,.cooking-guide,
+.checkout-final-summary,.success-summary{
+ background:linear-gradient(145deg,rgba(255,255,255,.24),rgba(255,255,255,.075) 48%,rgba(231,239,222,.13));
+ border:1px solid rgba(255,255,255,.68);
+ box-shadow:var(--lg-shadow);
+ backdrop-filter:blur(30px) saturate(190%);
+ -webkit-backdrop-filter:blur(30px) saturate(190%);
+}
+.glass,.season,.story,.guide,.review-panel,.insta,.checkout,.detail,.product{
+ position:relative;
+ isolation:isolate;
+}
+.glass::before,.season::before,.story::before,.guide::before,.review-panel::before,
+.insta::before,.checkout::before,.detail::before,.product::before{
+ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+ background:linear-gradient(132deg,rgba(255,255,255,.34),transparent 28%,transparent 70%,rgba(255,255,255,.10));
+}
+.product>* ,.detail>* ,.checkout>*{position:relative;z-index:1}
+header{
+ background:rgba(245,244,236,.28);
+ border-bottom:1px solid rgba(255,255,255,.62);
+ box-shadow:0 9px 35px rgba(54,67,44,.055),inset 0 1px rgba(255,255,255,.68);
+ backdrop-filter:blur(34px) saturate(190%);
+ -webkit-backdrop-filter:blur(34px) saturate(190%);
+}
+.igbar{
+ background:rgba(255,255,255,.16);
+ border-bottom:1px solid rgba(255,255,255,.55);
+ backdrop-filter:blur(28px) saturate(180%);
+ -webkit-backdrop-filter:blur(28px) saturate(180%);
+}
+.iconbtn,.secondary,.search,.sort,.filters,.pill,.float,.summary,.checkout-note,
+.drawerhead,.drawerfoot,.cartline,.bundle-item,.step,.guide-step,.review-card{
+ background:rgba(255,255,255,.19);
+ border:1px solid rgba(255,255,255,.66);
+ box-shadow:inset 0 1px rgba(255,255,255,.72),0 8px 26px rgba(54,67,44,.055);
+ backdrop-filter:blur(24px) saturate(185%);
+ -webkit-backdrop-filter:blur(24px) saturate(185%);
+}
+.iconbtn{background:rgba(255,255,255,.22)}
+.btn{box-shadow:inset 0 1px rgba(255,255,255,.5),0 8px 22px rgba(54,67,44,.10)}
+.primary{
+ background:linear-gradient(135deg,rgba(126,150,111,.94),rgba(69,94,61,.97));
+ border:1px solid rgba(255,255,255,.54);
+}
+.filters{
+ background:rgba(255,255,255,.14);
+ border-color:rgba(255,255,255,.72);
+ box-shadow:inset 0 1px rgba(255,255,255,.7),0 12px 30px rgba(54,67,44,.07);
+ backdrop-filter:blur(28px) saturate(190%);
+ -webkit-backdrop-filter:blur(28px) saturate(190%);
+}
+.filter.active{
+ background:linear-gradient(145deg,rgba(255,255,255,.54),rgba(255,255,255,.20));
+ border-color:rgba(255,255,255,.84);
+ box-shadow:inset 0 1px rgba(255,255,255,.88),0 4px 15px rgba(54,67,44,.10);
+}
+.product{
+ overflow:hidden;
+ padding:8px 8px 9px;
+ background:linear-gradient(145deg,rgba(255,255,255,.27),rgba(255,255,255,.10) 55%,rgba(231,239,222,.18));
+ border-color:rgba(255,255,255,.72);
+ box-shadow:0 14px 38px rgba(48,62,38,.09),inset 0 1px rgba(255,255,255,.84);
+}
+.product:hover{box-shadow:0 23px 48px rgba(48,62,38,.14),inset 0 1px rgba(255,255,255,.9)}
+.prodimg{
+ position:relative;
+ height:190px;
+ margin:0 0 -17px;
+ border-radius:16px 16px 9px 9px;
+ overflow:hidden;
+ background:rgba(224,231,214,.25);
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 55%,rgba(0,0,0,.92) 68%,rgba(0,0,0,.48) 86%,transparent 100%);
+ mask-image:linear-gradient(to bottom,#000 0%,#000 55%,rgba(0,0,0,.92) 68%,rgba(0,0,0,.48) 86%,transparent 100%);
+}
+.prodimg img{
+ width:100%;height:100%;object-fit:cover;
+ transform:scale(1.015);
+ transition:transform .9s cubic-bezier(.2,.75,.2,1),filter .9s ease;
+}
+.product:hover .prodimg img{transform:scale(1.055);filter:saturate(1.04)}
+.prodimg .placeholder{min-height:190px;background:linear-gradient(145deg,rgba(224,231,214,.45),rgba(245,230,210,.36))}
+.prodinfo{
+ position:relative;
+ z-index:1;
+ padding:15px 6px 5px;
+ border-radius:13px;
+ background:linear-gradient(to bottom,rgba(247,248,242,.10),rgba(247,248,242,.035));
+}
+.product .badge{
+ background:rgba(255,255,255,.34);
+ border:1px solid rgba(255,255,255,.66);
+ box-shadow:0 5px 18px rgba(37,49,31,.08),inset 0 1px rgba(255,255,255,.75);
+ backdrop-filter:blur(20px) saturate(180%);
+ -webkit-backdrop-filter:blur(20px) saturate(180%);
+}
+.detailimg{
+ position:relative;
+ overflow:hidden;
+ border-radius:20px;
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 68%,rgba(0,0,0,.88) 80%,transparent 100%);
+ mask-image:linear-gradient(to bottom,#000 0%,#000 68%,rgba(0,0,0,.88) 80%,transparent 100%);
+}
+.detailimg img{transition:transform 1.1s cubic-bezier(.2,.75,.2,1)}
+.detailcopy{position:relative;margin-top:-22px;padding-top:25px}
+.overlay{
+ background:rgba(34,43,30,.18);
+ backdrop-filter:blur(16px) saturate(130%);
+ -webkit-backdrop-filter:blur(16px) saturate(130%);
+}
+.modal,.drawer{
+ background:linear-gradient(145deg,rgba(250,251,246,.60),rgba(245,247,240,.34));
+ border:1px solid rgba(255,255,255,.78);
+ box-shadow:0 28px 90px rgba(31,42,26,.20),inset 0 1px rgba(255,255,255,.85);
+ backdrop-filter:blur(38px) saturate(190%);
+ -webkit-backdrop-filter:blur(38px) saturate(190%);
+}
+.drawerhead,.drawerfoot{background:rgba(255,255,255,.14)}
+.mobilecart{
+ background:rgba(248,249,243,.24);
+ border:1px solid rgba(255,255,255,.78);
+ box-shadow:0 15px 42px rgba(48,59,37,.12),inset 0 1px rgba(255,255,255,.88);
+ backdrop-filter:blur(34px) saturate(190%);
+ -webkit-backdrop-filter:blur(34px) saturate(190%);
+}
+.checkout{
+ background:linear-gradient(145deg,rgba(250,251,247,.68),rgba(245,247,240,.42));
+}
+.summary,.checkout .summary{background:rgba(255,255,255,.19);border-color:rgba(255,255,255,.62)}
+.version{color:rgba(91,101,82,.72)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ .glass,.trust article,.season,.story,.step,.guide,.guide-step,.review-panel,.insta,.checkout,.detail,.product,.modal,.drawer{background:rgba(255,255,255,.92)}
+ .prodimg{-webkit-mask-image:none;mask-image:none}
+}
+@media(max-width:700px){
+ header{background:rgba(245,244,236,.40)}
+ .prodimg{height:145px;margin-bottom:-15px}
+ .prodimg .placeholder{min-height:145px}
+ .detailimg{-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 65%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 65%,transparent 100%)}
+}
+@media(prefers-reduced-motion:reduce){
+ .prodimg img,.detailimg img{transition:none}
+}
+
 </style>
 </head>
 
@@ -888,7 +1049,7 @@ header{
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 4.0</div>
+ <div class="version">Версия 4.1</div>
 </footer>
 
 <div class="mobilecart">
