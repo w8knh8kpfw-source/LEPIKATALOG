@@ -774,9 +774,16 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=await getProductStatuses();res.writeHead(200,{"Cache-Control":"no-store"});return res.end(JSON.stringify({statuses}))}catch(error){console.error("Could not load product statuses:",error.message);res.writeHead(503);return res.end(JSON.stringify({error:"Product statuses unavailable"}))}}
+if(req.method==="GET"&&pathname==="/api/product-statuses"){
+    const limit=rateLimit(req,"statuses",60,60*1000);
+    if(!limit.allowed)return sendJson(res,429,{error:"Too many requests"},{"Retry-After":String(limit.retryAfter)});
+    try{const statuses=await getProductStatuses();return sendJson(res,200,{statuses})}
+    catch(error){console.error("Could not load product statuses:",error.message);return sendJson(res,503,{error:"Product statuses unavailable"})}
+  }
 
   if(req.method==="GET"&&pathname==="/api/track"){
+    const limit=rateLimit(req,"tracking",30,60*1000);
+    if(!limit.allowed)return sendJson(res,429,{error:"Too many requests"},{"Retry-After":String(limit.retryAfter)});
     const token=new URL(req.url,"http://localhost").searchParams.get("token")||"";
     if(!/^[a-f0-9]{48}$/.test(token)){res.writeHead(400);return res.end(JSON.stringify({error:"Invalid tracking link"}))}
     try{
@@ -791,6 +798,8 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=aw
   }
 
   if (req.method === "GET" && pathname === "/api/reviews") {
+    const limit=rateLimit(req,"reviews",30,60*1000);
+    if(!limit.allowed)return sendJson(res,429,{error:"Too many requests"},{"Retry-After":String(limit.retryAfter)});
     try {
       const reviews = await getReviews();
 
@@ -820,130 +829,56 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=aw
     }
   }
 
-  if (req.method !== "POST" || req.url !== "/api/order") {
-    res.writeHead(404);
-    return res.end(JSON.stringify({
-      error: "Not found"
-    }));
+  if(req.method!=="POST"||pathname!=="/api/order"){
+    return sendJson(res,404,{error:"Not found"});
   }
-
-  if (!BOT_TOKEN || CHAT_IDS.length !== 2 || !ALLOWED_ORIGIN) {
-    console.error(
-      "Configuration error: check required environment variables"
-    );
-
-    res.writeHead(500);
-    return res.end(JSON.stringify({
-      error: "Server not configured"
-    }));
+  if(!BOT_TOKEN||CHAT_IDS.length!==2||!ALLOWED_ORIGIN){
+    console.error("Configuration error: check required environment variables");
+    return sendJson(res,500,{error:"Server not configured"});
   }
-
-  try {
-    let body = "";
-
-    for await (const chunk of req) {
-      body += chunk;
-
-      if (body.length > 20000) {
-        res.writeHead(413);
-        return res.end(JSON.stringify({
-          error: "Order too large"
-        }));
-      }
+  if(origin!==ALLOWED_ORIGIN)return sendJson(res,403,{error:"Origin not allowed"});
+  if(!/^application\/json(?:;|$)/i.test(String(req.headers["content-type"]||"")))return sendJson(res,415,{error:"Content-Type must be application/json"});
+  const limit=rateLimit(req,"orders",5,RATE_WINDOW_MS);
+  if(!limit.allowed)return sendJson(res,429,{error:"Слишком много попыток оформления. Попробуйте позже."},{"Retry-After":String(limit.retryAfter)});
+  const requestId=String(req.headers["x-order-request-id"]||"");
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId))return sendJson(res,400,{error:"Missing or invalid order request ID"});
+  try{
+    let body="",bytes=0;
+    for await(const chunk of req){
+      bytes+=Buffer.byteLength(chunk);
+      if(bytes>20000)return sendJson(res,413,{error:"Order too large"});
+      body+=chunk;
     }
-
-    const order = JSON.parse(body);
-
-    const name = String(order.name || "").trim();
-    const phone = String(order.phone || "").trim();
-    const address = String(order.address || "").trim();
-    const comment = String(order.comment || "").trim();
-    const items = order.items;
-    const total = String(order.total ?? "").trim();
-
-    if (!name || !phone || !Array.isArray(items) ||
-        items.length === 0) {
-      res.writeHead(400);
-      return res.end(JSON.stringify({
-        error: "Missing order details"
-      }));
+    let order;
+    try{order=JSON.parse(body)}catch{return sendJson(res,400,{error:"Invalid JSON"})}
+    const checked=validateOrderPayload(order);
+    if(checked.error)return sendJson(res,400,{error:checked.error});
+    const fingerprint=crypto.createHash("sha256").update(JSON.stringify(order)).digest("hex");
+    const now=Date.now();
+    for(const [key,value] of ORDER_REQUESTS)if(value.expiresAt<=now)ORDER_REQUESTS.delete(key);
+    let record=ORDER_REQUESTS.get(requestId);
+    if(record&&record.fingerprint!==fingerprint)return sendJson(res,409,{error:"Request ID already used for a different order"});
+    if(!record){
+      record={fingerprint,promise:null,response:null,expiresAt:now+ORDER_REQUEST_TTL,trackingAttempted:false,trackedOrder:null,sentRecipients:new Set()};
+      ORDER_REQUESTS.set(requestId,record);
     }
-
-    let trackedOrder=null;
-    try{
-      trackedOrder=await createTrackedOrder({name,items,total});
-    }catch(error){
-      console.warn("Order tracking is not enabled; continuing with normal order delivery:",error.message);
+    if(record.promise){
+      const result=await record.promise;
+      return sendJson(res,result.status,result.body);
     }
-
-    const itemText = items.map(item => {
-      if (typeof item === "string") return item;
-
-      return [
-        item.name || item.title || "Товар",
-        item.quantity ? ` × ${item.quantity}` : "",
-        item.price != null ? ` — ${item.price}` : ""
-      ].join("");
-    }).join("\n");
-
-    const message = [
-      "🛍 НОВЫЙ ЗАКАЗ LEPÍ",
-      "",
-      `👤 Имя: ${name}`,
-      `📞 Телефон: ${phone}`,
-      `📍 Адрес: ${address || "Не указан"}`,
-      "",
-      "🧺 Заказ:",
-      itemText,
-      "",
-      `💰 Сумма: ${total || "Не указана"}`,
-      `💬 Комментарий: ${comment || "Нет"}`,
-      ...(trackedOrder?[`📦 Номер заказа: ${trackedOrder.order_number}`,`🔗 Отслеживание: ${trackedOrder.url}`,"",`📦 Текущий статус: ${ORDER_STATUSES.new}`]:[])
-    ].join("\n");
-
-    const results = await Promise.all(
-      CHAT_IDS.map(async (chatId, index) => {
-        try {
-          const result = await telegram("sendMessage", {
-            chat_id: chatId,
-            text: message,
-            ...(trackedOrder?{reply_markup:orderFulfillmentKeyboard(trackedOrder.id)}:{})
-          });
-
-          return Boolean(result.message_id);
-        } catch (error) {
-          console.error(
-            `Order delivery failed for recipient ${index + 1}:`,
-            error.message
-          );
-
-          return false;
-        }
-      })
-    );
-
-    if (results.every(Boolean)) {
-      res.writeHead(200);
-      return res.end(JSON.stringify({
-        success: true,
-        tracking:trackedOrder?{orderNumber:trackedOrder.order_number,url:trackedOrder.url}:null
-      }));
-    }
-
-    res.writeHead(502);
-    return res.end(JSON.stringify({
-      error: "Could not deliver order to all recipients"
-    }));
-  } catch (error) {
-    console.error(
-      "Order processing failed:",
-      error.message
-    );
-
-    res.writeHead(400);
-    return res.end(JSON.stringify({
-      error: "Invalid order request"
-    }));
+    if(record.response&&record.response.status===200)return sendJson(res,record.response.status,record.response.body);
+    record.promise=processOrderPayload(order,record).catch(error=>{
+      console.error("Order processing failed:",error.message);
+      return {status:500,body:{error:"Could not process order"}};
+    });
+    const result=await record.promise;
+    record.promise=null;
+    record.response=result;
+    record.expiresAt=Date.now()+ORDER_REQUEST_TTL;
+    return sendJson(res,result.status,result.body);
+  }catch(error){
+    console.error("Order request failed:",error.message);
+    return sendJson(res,400,{error:"Invalid order request"});
   }
 });
 
