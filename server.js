@@ -853,7 +853,7 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){
     console.error("Configuration error: check required environment variables");
     return sendJson(res,500,{error:"Server not configured"});
   }
-  if(origin!==ALLOWED_ORIGIN)return sendJson(res,403,{error:"Origin not allowed"});
+  if(origin && origin!==ALLOWED_ORIGIN)return sendJson(res,403,{error:"Origin not allowed"});
   if(!/^application\/json(?:;|$)/i.test(String(req.headers["content-type"]||"")))return sendJson(res,415,{error:"Content-Type must be application/json"});
   const limit=rateLimit(req,"orders",5,RATE_WINDOW_MS);
   if(!limit.allowed)return sendJson(res,429,{error:"Слишком много попыток оформления. Попробуйте позже."},{"Retry-After":String(limit.retryAfter)});
