@@ -4,6 +4,8 @@ const crypto = require("crypto");
 
 const PORT = process.env.PORT || 10000;
 const BOT_TOKEN = process.env.BOT_TOKEN;
+const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL;
 const CHAT_IDS = [
   process.env.CHAT_ID_1,
   process.env.CHAT_ID_2
@@ -73,7 +75,8 @@ async function dbRequest(path, options = {}) {
     `${SUPABASE_URL}/rest/v1/${path}`,
     {
       ...options,
-      headers: supabaseHeaders(options.headers || {})
+      headers: supabaseHeaders(options.headers || {}),
+      signal: AbortSignal.timeout(15000)
     }
   );
 
@@ -625,6 +628,31 @@ const server = http.createServer(async (req, res) => {
 
   const pathname = new URL(req.url, "http://localhost").pathname;
 
+  if(req.method==="POST"&&pathname==="/telegram/webhook"){
+    if(!TELEGRAM_WEBHOOK_SECRET || req.headers["x-telegram-bot-api-secret-token"]!==TELEGRAM_WEBHOOK_SECRET){
+      res.writeHead(403);
+      return res.end(JSON.stringify({error:"Forbidden"}));
+    }
+    try{
+      let body="";
+      for await(const chunk of req){
+        body+=chunk;
+        if(body.length>1000000){
+          res.writeHead(413);
+          return res.end(JSON.stringify({error:"Update too large"}));
+        }
+      }
+      const update=JSON.parse(body);
+      await handleUpdate(update);
+      res.writeHead(200,{"Cache-Control":"no-store"});
+      return res.end("OK");
+    }catch(error){
+      console.error("Telegram webhook update error:",error.message);
+      res.writeHead(200,{"Cache-Control":"no-store"});
+      return res.end("OK");
+    }
+  }
+
 if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=await getProductStatuses();res.writeHead(200,{"Cache-Control":"no-store"});return res.end(JSON.stringify({statuses}))}catch(error){console.error("Could not load product statuses:",error.message);res.writeHead(503);return res.end(JSON.stringify({error:"Product statuses unavailable"}))}}
 
   if(req.method==="GET"&&pathname==="/api/track"){
@@ -798,7 +826,31 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){try{const statuses=aw
   }
 });
 
+async function startTelegram(){
+  if(!BOT_TOKEN || CHAT_IDS.length!==2){
+    console.error("Telegram bot configuration is incomplete.");
+    return;
+  }
+  if(TELEGRAM_WEBHOOK_SECRET && RENDER_EXTERNAL_URL){
+    try{
+      const url=RENDER_EXTERNAL_URL.replace(/\\/+$/,"")+"/telegram/webhook";
+      await telegram("setWebhook",{
+        url,
+        secret_token:TELEGRAM_WEBHOOK_SECRET,
+        allowed_updates:["message","callback_query"],
+        drop_pending_updates:false
+      });
+      console.log("Telegram webhook configured:",url);
+    }catch(error){
+      console.error("Could not configure Telegram webhook:",error.message);
+    }
+    return;
+  }
+  console.warn("Webhook secret or Render URL missing; falling back to long polling.");
+  pollTelegram();
+}
+
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`LEPI orders server listening on ${PORT}`);
-  pollTelegram();
+  startTelegram();
 });
