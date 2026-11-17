@@ -412,7 +412,7 @@ struct CatalogView: View {
                         }
                     }
                     if filtered.isEmpty {
-                        ContentUnavailableView.search(text:search)
+                        VStack(spacing:10) { Image(systemName:"magnifyingglass").font(.system(size:24)).foregroundStyle(LEPIStyle.silver); Text("Ничего не найдено").font(.system(size:17,weight:.medium)); Text("Попробуйте изменить запрос или категорию.").font(.system(size:12)).foregroundStyle(LEPIStyle.secondary) }.frame(maxWidth:.infinity).padding(.vertical,44)
                     }
                 }.padding(.horizontal,18).padding(.top,16).padding(.bottom,28)
             }
@@ -513,7 +513,7 @@ struct ProductDetailView: View {
                     }.disabled(store.status(for:product) == .unavailable)
                 }.padding(20)
             }.background(LEPIStyle.paper.ignoresSafeArea())
-                .toolbar { ToolbarItem(placement:.topBarTrailing) { Button("Готово") { dismiss() }.tint(LEPIStyle.ink) } }
+                .toolbar { ToolbarItem(placement:.navigationBarTrailing) { Button("Готово") { dismiss() }.tint(LEPIStyle.ink) } }
         }
     }
 }
