@@ -484,12 +484,15 @@ async function handleUpdate(update) {
     try{
       await setProductStatus(productId,status);
       const statuses=await getProductStatuses();
-      await telegram("editMessageText",{
-        chat_id:chatId,
-        message_id:callback.message.message_id,
-        text:productStatusText(statuses),
-        reply_markup:productStatusKeyboard(statuses)
-      });
+      const updatedText=productStatusText(statuses);
+      if(updatedText!==String(callback.message?.text||"")){
+        await telegram("editMessageText",{
+          chat_id:chatId,
+          message_id:callback.message.message_id,
+          text:updatedText,
+          reply_markup:productStatusKeyboard(statuses)
+        });
+      }
     }catch(error){
       console.error("Could not update product status:",error.message);
       try{
