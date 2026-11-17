@@ -93,28 +93,31 @@ async function dbRequest(path, options = {}) {
 
 async function getProductStatuses(){const rows=await dbRequest("product_statuses?select=product_id,status");return Object.fromEntries(rows.map(row=>[row.product_id,row.status]))}
 async function setProductStatus(productId,status){if(!PRODUCTS.some(p=>p.id===productId)||!Object.hasOwn(PRODUCT_STATUSES,status))throw new Error("Invalid product status");return dbRequest("product_statuses?on_conflict=product_id",{method:"POST",headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({product_id:productId,status,updated_at:new Date().toISOString()})})}
-function productStatusKeyboard(statuses){
-  return {inline_keyboard:PRODUCTS.map(p=>{
-    const current=statuses[p.id]||"available";
-    return Object.entries(PRODUCT_STATUSES).map(([key,label])=>({
-      text:(current===key?"✓ ":"")+label,
-      callback_data:`stock:${p.id}:${key}`
-    }));
-  })};
+function productStatusKeyboard(productId,statuses){
+  const current=statuses[productId]||"available";
+  return {inline_keyboard:[[
+    {text:(current==="available"?"✓ ":"")+"В наличии",callback_data:`stock:${productId}:available`},
+    {text:(current==="preorder"?"✓ ":"")+"Предзаказ",callback_data:`stock:${productId}:preorder`},
+    {text:(current==="unavailable"?"✓ ":"")+"Нет",callback_data:`stock:${productId}:unavailable`}
+  ]]};
 }
-function productStatusText(statuses){
-  return "📦 Наличие товаров\\n\\n"+PRODUCTS.map(p=>{
-    const status=statuses[p.id]||"available";
-    return "• "+p.name+" — "+PRODUCT_STATUSES[status];
-  }).join("\\n");
+function productStatusText(productId,statuses){
+  const product=PRODUCTS.find(p=>p.id===productId);
+  if(!product) throw new Error("Unknown product");
+  const status=statuses[productId]||"available";
+  return `📦 ${product.name}\nСтатус: ${PRODUCT_STATUSES[status]}`;
 }
 async function showProductStatusMenu(chatId){
   const statuses=await getProductStatuses();
-  return sendText(chatId,productStatusText(statuses),{
-    reply_markup:productStatusKeyboard(statuses)
-  });
+  await sendText(chatId,"📦 Наличие товаров\nВыбери статус под каждым товаром:");
+  for(let i=0;i<PRODUCTS.length;i++){
+    const product=PRODUCTS[i];
+    await sendText(chatId,productStatusText(product.id,statuses),{
+      reply_markup:productStatusKeyboard(product.id,statuses)
+    });
+    if(i<PRODUCTS.length-1) await new Promise(resolve=>setTimeout(resolve,1050));
+  }
 }
-
 function orderFulfillmentKeyboard(orderId){
   return {inline_keyboard:[[
     {text:"🚚 Доставка",callback_data:`ful:${orderId}:delivery`},
@@ -484,15 +487,12 @@ async function handleUpdate(update) {
     try{
       await setProductStatus(productId,status);
       const statuses=await getProductStatuses();
-      const updatedText=productStatusText(statuses);
-      if(updatedText!==String(callback.message?.text||"")){
-        await telegram("editMessageText",{
-          chat_id:chatId,
-          message_id:callback.message.message_id,
-          text:updatedText,
-          reply_markup:productStatusKeyboard(statuses)
-        });
-      }
+      await telegram("editMessageText",{
+        chat_id:chatId,
+        message_id:callback.message.message_id,
+        text:productStatusText(productId,statuses),
+        reply_markup:productStatusKeyboard(productId,statuses)
+      });
     }catch(error){
       console.error("Could not update product status:",error.message);
       try{
@@ -500,8 +500,8 @@ async function handleUpdate(update) {
         await telegram("editMessageText",{
           chat_id:chatId,
           message_id:callback.message.message_id,
-          text:productStatusText(statuses)+"\\n\\n⚠️ Не удалось сохранить изменение. Попробуй ещё раз.",
-          reply_markup:productStatusKeyboard(statuses)
+          text:productStatusText(productId,statuses)+"\n\n⚠️ Не удалось сохранить изменение. Попробуй ещё раз.",
+          reply_markup:productStatusKeyboard(productId,statuses)
         });
       }catch(updateError){
         console.error("Could not refresh stock menu after error:",updateError.message);
