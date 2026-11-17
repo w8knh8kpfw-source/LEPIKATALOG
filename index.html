@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f5f2e9">
 <meta name="description" content="LEPÍ — домашние полуфабрикаты в Худжанде. Сырники, блинчики, котлеты и фрикадельки.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://lepi-orders.onrender.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
 <title>LEPÍ — вкус домашнего уюта</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 <script type="module" src="https://cdn.jsdelivr.net/npm/simple-liquid-glass/web-component"></script>
@@ -1369,7 +1371,7 @@ header{
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 4.7</div>
+ <div class="version">Версия 4.8</div>
 </footer>
 
 <div class="mobilecart">
@@ -1519,7 +1521,7 @@ function createCart(initial={}){
 }
 
 let category="Все",query="",sorting="default",cart=createCart(readSavedCart()),selected="",detailQty=0;
-let orderSending=false,guideIndex=0,toastTimer=null;
+let orderSending=false,guideIndex=0,toastTimer=null,activeOrderRequestId=null;
 const $=id=>document.getElementById(id);
 
 const money=n=>{
@@ -1900,23 +1902,25 @@ async function sendOrder(event){
  const addressField=form.querySelector('[name="customerAddress"]');
  const name=nameField.value.trim(),phone=phoneField.value.trim(),address=addressField.value.trim();
  if(!name){showFieldError(nameField,"nameError","Укажите, пожалуйста, ваше имя.");return}
- if(phone.replace(/\D/g,"").length<7){showFieldError(phoneField,"phoneError","Введите номер телефона с кодом страны.");return}
+ if(phone.replace(/\D/g,"").length<7){showFieldError(phoneField,"phoneError","Введите корректный номер телефона.");return}
  if(!address){showFieldError(addressField,"addressError","Укажите улицу, дом и при необходимости ориентир.");return}
  const data={name,phone,address,comment:form.querySelector('[name="customerComment"]').value.trim()};
- const orderText=buildText(data);
  if(!ORDER_ENDPOINT){toast("Отправка заказов пока не настроена");return}
+ if(!activeOrderRequestId)activeOrderRequestId=crypto.randomUUID();
  setOrderLoading(true);
  try{
   const response=await fetch(ORDER_ENDPOINT,{
-   method:"POST",headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({...data,items:items().map(p=>({name:p.name,quantity:p.q,price:p.total})),total:money(sum()),text:orderText})
+   method:"POST",
+   headers:{"Content-Type":"application/json","X-Order-Request-Id":activeOrderRequestId},
+   body:JSON.stringify({...data,items:items().map(p=>({id:p.id,quantity:p.q}))})
   });
-  if(!response.ok)throw new Error("Не удалось отправить заказ");
-  const result=await response.json();
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||"Не удалось отправить заказ");
+  activeOrderRequestId=null;
   showOrderPrepared(result.tracking||null);
  }catch(error){
   setOrderLoading(false);
-  toast("Не удалось отправить заказ. Проверьте интернет и попробуйте ещё раз.");
+  toast(error.message||"Не удалось отправить заказ. Проверьте интернет и попробуйте ещё раз.");
  }
 }
 
