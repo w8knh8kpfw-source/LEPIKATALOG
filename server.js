@@ -90,7 +90,27 @@ async function dbRequest(path, options = {}) {
 
 async function getProductStatuses(){const rows=await dbRequest("product_statuses?select=product_id,status");return Object.fromEntries(rows.map(row=>[row.product_id,row.status]))}
 async function setProductStatus(productId,status){if(!PRODUCTS.some(p=>p.id===productId)||!Object.hasOwn(PRODUCT_STATUSES,status))throw new Error("Invalid product status");return dbRequest("product_statuses?on_conflict=product_id",{method:"POST",headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({product_id:productId,status,updated_at:new Date().toISOString()})})}
-async function showProductStatusMenu(chatId){const statuses=await getProductStatuses();for(const p of PRODUCTS){const status=statuses[p.id]||"available";await sendText(chatId,p.name,{reply_markup:{inline_keyboard:[Object.entries(PRODUCT_STATUSES).map(([key,label])=>({text:(status===key?"✓ ":"")+label,callback_data:`stock:${p.id}:${key}`}))]}})}}
+function productStatusKeyboard(statuses){
+  return {inline_keyboard:PRODUCTS.map(p=>{
+    const current=statuses[p.id]||"available";
+    return Object.entries(PRODUCT_STATUSES).map(([key,label])=>({
+      text:(current===key?"✓ ":"")+label,
+      callback_data:`stock:${p.id}:${key}`
+    }));
+  })};
+}
+function productStatusText(statuses){
+  return "📦 Наличие товаров\\n\\n"+PRODUCTS.map(p=>{
+    const status=statuses[p.id]||"available";
+    return "• "+p.name+" — "+PRODUCT_STATUSES[status];
+  }).join("\\n");
+}
+async function showProductStatusMenu(chatId){
+  const statuses=await getProductStatuses();
+  return sendText(chatId,productStatusText(statuses),{
+    reply_markup:productStatusKeyboard(statuses)
+  });
+}
 
 function orderFulfillmentKeyboard(orderId){
   return {inline_keyboard:[[
@@ -447,7 +467,42 @@ async function handleUpdate(update) {
   }
 
   const stockMatch=/^stock:([a-z0-9_-]+):(available|preorder|unavailable)$/.exec(callback.data||"");
-  if(stockMatch){const [,productId,status]=stockMatch;try{await setProductStatus(productId,status);const p=PRODUCTS.find(item=>item.id===productId);const label=PRODUCT_STATUSES[status];await telegram("answerCallbackQuery",{callback_query_id:callback.id,text:"Обновлено: "+label});await telegram("editMessageText",{chat_id:chatId,message_id:callback.message.message_id,text:p.name+"\n\nСтатус: "+label,reply_markup:{inline_keyboard:[Object.entries(PRODUCT_STATUSES).map(([key,value])=>({text:(status===key?"✓ ":"")+value,callback_data:`stock:${productId}:${key}`}))]}})}catch(error){console.error("Could not update product status:",error.message);await telegram("answerCallbackQuery",{callback_query_id:callback.id,text:"Не удалось обновить. Проверь таблицу product_statuses в Supabase.",show_alert:true})}return}
+  if(stockMatch){
+    const [,productId,status]=stockMatch;
+    // Сразу закрываем индикатор загрузки Telegram, не дожидаясь ответа базы данных.
+    try{
+      await telegram("answerCallbackQuery",{
+        callback_query_id:callback.id,
+        text:"Сохраняю изменение…"
+      });
+    }catch(error){
+      console.error("Could not acknowledge stock callback:",error.message);
+    }
+    try{
+      await setProductStatus(productId,status);
+      const statuses=await getProductStatuses();
+      await telegram("editMessageText",{
+        chat_id:chatId,
+        message_id:callback.message.message_id,
+        text:productStatusText(statuses),
+        reply_markup:productStatusKeyboard(statuses)
+      });
+    }catch(error){
+      console.error("Could not update product status:",error.message);
+      try{
+        const statuses=await getProductStatuses();
+        await telegram("editMessageText",{
+          chat_id:chatId,
+          message_id:callback.message.message_id,
+          text:productStatusText(statuses)+"\\n\\n⚠️ Не удалось сохранить изменение. Попробуй ещё раз.",
+          reply_markup:productStatusKeyboard(statuses)
+        });
+      }catch(updateError){
+        console.error("Could not refresh stock menu after error:",updateError.message);
+      }
+    }
+    return;
+  }
   const match = /^del:(\d+)$/.exec(callback.data || "");
 
   if (!match) {
