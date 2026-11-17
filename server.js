@@ -84,13 +84,16 @@ function validateOrderPayload(order){
   if(!Array.isArray(order.items)||order.items.length<1||order.items.length>12)return {error:"Некорректный состав заказа."};
   const seen=new Set(),items=[];
   for(const row of order.items){
-    if(!row||typeof row!=="object"||Array.isArray(row)||typeof row.id!=="string"||!Object.hasOwn(PRODUCT_CATALOG,row.id))return {error:"В заказе обнаружен неизвестный товар."};
-    const product=PRODUCT_CATALOG[row.id],quantity=row.quantity;
-    if(!Number.isSafeInteger(quantity)||quantity<product.min||quantity>200||seen.has(row.id))return {error:"Некорректное количество товара: "+product.name};
-    seen.add(row.id);
-    const total=priceForProduct(row.id,quantity);
+    if(!row||typeof row!=="object"||Array.isArray(row))return {error:"В заказе обнаружен неизвестный товар."};
+    // Support previously cached storefront pages, but never trust their name or price.
+    const productId=typeof row.id==="string"?row.id:Object.keys(PRODUCT_CATALOG).find(id=>PRODUCT_CATALOG[id].name===row.name);
+    if(typeof productId!=="string"||!Object.hasOwn(PRODUCT_CATALOG,productId))return {error:"В заказе обнаружен неизвестный товар."};
+    const product=PRODUCT_CATALOG[productId],quantity=row.quantity;
+    if(!Number.isSafeInteger(quantity)||quantity<product.min||quantity>200||seen.has(productId))return {error:"Некорректное количество товара: "+product.name};
+    seen.add(productId);
+    const total=priceForProduct(productId,quantity);
     if(!Number.isFinite(total)||total<=0)return {error:"Некорректная стоимость товара."};
-    items.push({id:row.id,name:product.name,quantity,total});
+    items.push({id:productId,name:product.name,quantity,total});
   }
   const total=items.reduce((sum,item)=>sum+item.total,0);
   if(!Number.isFinite(total)||total<=0||total>100000)return {error:"Сумма заказа выходит за допустимые пределы."};
@@ -856,6 +859,10 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){
     const fingerprint=crypto.createHash("sha256").update(JSON.stringify(order)).digest("hex");
     const now=Date.now();
     for(const [key,value] of ORDER_REQUESTS)if(value.expiresAt<=now)ORDER_REQUESTS.delete(key);
+    if(ORDER_REQUESTS.size>=5000&&!ORDER_REQUESTS.has(requestId)){
+      const oldest=ORDER_REQUESTS.keys().next().value;
+      if(oldest)ORDER_REQUESTS.delete(oldest);
+    }
     let record=ORDER_REQUESTS.get(requestId);
     if(record&&record.fingerprint!==fingerprint)return sendJson(res,409,{error:"Request ID already used for a different order"});
     if(!record){
