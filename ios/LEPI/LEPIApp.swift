@@ -210,11 +210,12 @@ final class LEPIStore: ObservableObject {
         }
     }
 
-    func submitOrder(name: String, phone: String, address: String, comment: String) async throws -> String? {
+    func submitOrder(name: String, phone: String, address: String, comment: String, requestID: String) async throws -> String? {
         let url = apiBase.appendingPathComponent("api/order")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(requestID, forHTTPHeaderField: "X-Order-Request-ID")
         request.timeoutInterval = 35
         let payload = OrderPayload(
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -600,6 +601,7 @@ struct CheckoutView: View {
     @State private var address = ""
     @State private var comment = ""
     @State private var privacyAccepted = false
+    @State private var orderRequestID = UUID().uuidString
     @State private var sending = false
     @State private var errorText: String?
     @State private var successNumber: String?
@@ -674,7 +676,7 @@ struct CheckoutView: View {
         errorText = nil
         defer { sending = false }
         do {
-            let number = try await store.submitOrder(name:name,phone:phone,address:address,comment:comment)
+            let number = try await store.submitOrder(name:name,phone:phone,address:address,comment:comment,requestID:orderRequestID)
             successNumber = number ?? "Заказ принят"
         } catch {
             errorText = error.localizedDescription
@@ -684,7 +686,7 @@ struct CheckoutView: View {
     private func formField(_ title:String,placeholder:String,text:Binding<String>)->some View {
         VStack(alignment:.leading,spacing:7) {
             Text(title).font(.system(size:12,weight:.medium))
-            TextField(placeholder,text:text).padding(14).background(.white)
+            TextField(placeholder,text:text).onChange(of:text.wrappedValue) { _ in orderRequestID = UUID().uuidString }.padding(14).background(.white)
                 .clipShape(RoundedRectangle(cornerRadius:14))
                 .overlay(RoundedRectangle(cornerRadius:14).stroke(LEPIStyle.line))
         }
