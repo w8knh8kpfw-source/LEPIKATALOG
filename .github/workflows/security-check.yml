@@ -17,6 +17,6 @@ jobs:
         with:
           node-version: 22
       - name: Check backend JavaScript syntax
-        run: node --check server.js
+        run: node --check server.js app.js track.js
       - name: Check inline storefront JavaScript
         run: node scripts/check-inline-scripts.cjs
