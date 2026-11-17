@@ -1,0 +1,22 @@
+name: LEPI security checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check backend JavaScript syntax
+        run: node --check server.js
+      - name: Check inline storefront JavaScript
+        run: node scripts/check-inline-scripts.cjs
