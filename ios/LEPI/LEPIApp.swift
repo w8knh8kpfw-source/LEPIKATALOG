@@ -540,8 +540,8 @@ struct CartView: View {
                                 .font(.system(size:13)).foregroundStyle(LEPIStyle.secondary)
                         }.frame(maxWidth:.infinity).padding(.vertical,70).lepiCard()
                     } else {
-                        ForEach(store.cartProducts,id:\.product.id) { item in
-                            CartLine(product:item.product,quantity:item.quantity)
+                        ForEach(LEPIProduct.all.filter { store.cart[$0.id] != nil }) { product in
+                            CartLine(product:product,quantity:store.cart[product.id] ?? product.minimum)
                         }
                         VStack(spacing:12) {
                             HStack {
