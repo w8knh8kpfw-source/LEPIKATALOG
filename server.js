@@ -13,6 +13,7 @@ const CHAT_IDS = [
 
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
 const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
+try { console.info("Supabase project host:", SUPABASE_URL ? new URL(SUPABASE_URL).host : "NOT_CONFIGURED"); } catch { console.warn("Supabase URL is invalid"); }
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || "review-photos";
 const PRODUCTS=[["chicken","Куриные котлеты с овощами"],["classic","Сырники классические"],["choco","Сырники шоколадные"],["rafaello","Сырники «Рафаэлло»"],["varenko","Сырники с варёнкой"],["beef","Говяжьи котлеты"],["meatp","Блинчики с мясом"],["curdp","Блинчики с творогом"],["condensed","Блинчики с варёной сгущёнкой"],["apple","Блинчики с яблоком и корицей"],["chopped","Рубленые куриные котлеты"],["meatballs","Фрикадельки"]].map(([id,name])=>({id,name}));
