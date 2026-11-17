@@ -148,7 +148,7 @@ function qtyText(p,q){
 function pic(name){return `<div class="placeholder"><div><b>${esc(name)}</b></div></div>`}
 function image(p,lazy=false){
  if(!p.image)return pic(p.name);
- return \`<img src="\${esc(p.image)}" alt="\${esc(p.name)}" \${lazy?'loading="lazy" ':''}decoding="async" data-hide-on-error="true" style="object-position:\${esc(p.pos||"50% 50%")}">\`;
+ return `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${lazy?'loading="lazy" ':''}decoding="async" data-hide-on-error="true" style="object-position:${esc(p.pos||"50% 50%")}">`;
 }
 document.addEventListener("error",event=>{
  const target=event.target;
