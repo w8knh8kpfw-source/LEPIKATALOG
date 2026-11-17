@@ -833,7 +833,7 @@ async function startTelegram(){
   }
   if(TELEGRAM_WEBHOOK_SECRET && RENDER_EXTERNAL_URL){
     try{
-      const url=RENDER_EXTERNAL_URL.replace(/\\/+$/,"")+"/telegram/webhook";
+      const url=RENDER_EXTERNAL_URL.replace(/\/+$/,"")+"/telegram/webhook";
       await telegram("setWebhook",{
         url,
         secret_token:TELEGRAM_WEBHOOK_SECRET,
