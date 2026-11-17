@@ -136,7 +136,6 @@ class MainActivity:ComponentActivity() {
     var selected by remember { mutableStateOf<Product?>(null) }
     var checkout by remember { mutableStateOf(false) }
     var success by remember { mutableStateOf<OrderResult?>(null) }
-    val scope = rememberCoroutineScope()
     val wide = LocalConfiguration.current.screenWidthDp >= 720
     val count = cart.values.sum()
     LaunchedEffect(Unit) {
@@ -169,7 +168,7 @@ class MainActivity:ComponentActivity() {
                     when(tab) {
                         Tab.HOME -> HomeScreen({tab=Tab.CATALOG},{selected=it})
                         Tab.CATALOG -> CatalogScreen(statuses,{selected=it},{ p -> cart[p.id]=(cart[p.id] ?: 0).let { q -> if(q==0) p.min else q+1 } })
-                        Tab.CART -> CartScreen(cart,{id -> cart[id]=(cart[id] ?: 0)+1},{id -> val p=products.first{it.id==id}; val q=cart[id] ?: 0; if(q<=p.min) cart.remove(id) else cart[id]=q-1},{id->cart.remove(id)},{checkout=true})
+                        Tab.CART -> CartScreen(cart,{id -> cart[id]=minOf((cart[id] ?: 0)+1,200)},{id -> val p=products.first{it.id==id}; val q=cart[id] ?: 0; if(q<=p.min) cart.remove(id) else cart[id]=q-1},{id->cart.remove(id)},{checkout=true})
                         Tab.REVIEWS -> ReviewsScreen(reviews,loadingReviews)
                         Tab.ABOUT -> AboutScreen(context)
                     }
@@ -179,12 +178,7 @@ class MainActivity:ComponentActivity() {
         selected?.let { p -> ProductDialog(p,statuses[p.id] ?: "unknown",{selected=null},{
             cart[p.id]=(cart[p.id] ?: 0).let { if(it==0) p.min else it+1 }; selected=null; tab=Tab.CART
         }) }
-        if(checkout) CheckoutDialog({checkout=false}) { name,phone,address,comment ->
-            scope.launch {
-                val result=Api.order(name,phone,address,comment,cart.toMap())
-                cart.clear(); checkout=false; success=result
-            }
-        }
+        if(checkout) CheckoutDialog(close={checkout=false},submit={ name,phone,address,comment -> Api.order(name,phone,address,comment,cart.toMap()) },onSuccess={ result -> cart.clear(); checkout=false; success=result })
         success?.let { result -> AlertDialog(onDismissRequest={success=null},containerColor=Paper,
             icon={Icon(Icons.Default.CheckCircle,contentDescription=null,tint=Green,modifier=Modifier.size(42.dp))},
             title={Text("Спасибо за заказ!",color=DeepGreen)},
@@ -346,7 +340,7 @@ class MainActivity:ComponentActivity() {
         }
     }
 }
-@Composable private fun CheckoutDialog(close:()->Unit,submit:(String,String,String,String)->Unit) {
+@Composable private fun CheckoutDialog(close:()->Unit,submit:suspend (String,String,String,String)->OrderResult,onSuccess:(OrderResult)->Unit) {
     var name by remember{mutableStateOf("")}
     var phone by remember{mutableStateOf("+992 ")}
     var address by remember{mutableStateOf("")}
@@ -371,7 +365,7 @@ class MainActivity:ComponentActivity() {
                 name.trim().length<2 -> error="Укажите имя (минимум 2 символа)."
                 digits.length !in 7..15 -> error="Проверьте номер телефона."
                 address.trim().length<5 -> error="Укажите полный адрес доставки."
-                else -> {busy=true;scope.launch{try{submit(name.trim(),phone.trim(),address.trim(),comment.trim())}catch(e:Exception){error=e.message ?: "Не удалось отправить заказ.";busy=false}}}
+                else -> {busy=true;scope.launch{try{onSuccess(submit(name.trim(),phone.trim(),address.trim(),comment.trim()))}catch(e:Exception){error=e.message ?: "Не удалось отправить заказ.";busy=false}}}
             }
         },colors=ButtonDefaults.buttonColors(containerColor=Green)){Text(if(busy)"Отправка…" else "Отправить заказ")}
     },dismissButton={TextButton(onClick=close,enabled=!busy){Text("Отмена")}})
