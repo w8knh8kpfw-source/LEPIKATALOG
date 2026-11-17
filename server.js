@@ -843,6 +843,8 @@ async function startTelegram(){
       console.log("Telegram webhook configured:",url);
     }catch(error){
       console.error("Could not configure Telegram webhook:",error.message);
+      console.warn("Falling back to long polling.");
+      pollTelegram();
     }
     return;
   }
