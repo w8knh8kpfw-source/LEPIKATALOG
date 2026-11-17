@@ -1369,7 +1369,7 @@ header{
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 4.6</div>
+ <div class="version">Версия 4.7</div>
 </footer>
 
 <div class="mobilecart">
@@ -1489,7 +1489,36 @@ const ingredients={
  meatballs:["Куриное филе","Лук","Панировочные сухари","Яйцо","Соль","Чёрный молотый перец"]
 };
 
-let category="Все",query="",sorting="default",cart={},selected="",detailQty=0;
+const CART_STORAGE_KEY="lepi-cart-v1";
+function readSavedCart(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(CART_STORAGE_KEY)||"{}");
+  if(!saved||typeof saved!=="object"||Array.isArray(saved))return {};
+  return Object.fromEntries(Object.entries(saved).filter(([id,q])=>
+   products.some(product=>product.id===id)&&Number.isSafeInteger(q)&&q>0&&q<=999
+  ));
+ }catch(error){return {}}
+}
+function createCart(initial={}){
+ const target={...initial};
+ const persist=()=>{
+  try{
+   if(Object.keys(target).length)localStorage.setItem(CART_STORAGE_KEY,JSON.stringify(target));
+   else localStorage.removeItem(CART_STORAGE_KEY);
+  }catch(error){console.warn("Не удалось сохранить корзину:",error)}
+ };
+ return new Proxy(target,{
+  set(object,key,value){
+   if(typeof key!=="string"||!products.some(product=>product.id===key)||!Number.isSafeInteger(value)||value<1||value>999)return true;
+   object[key]=value;persist();return true;
+  },
+  deleteProperty(object,key){
+   delete object[key];persist();return true;
+  }
+ });
+}
+
+let category="Все",query="",sorting="default",cart=createCart(readSavedCart()),selected="",detailQty=0;
 let orderSending=false,guideIndex=0,toastTimer=null;
 const $=id=>document.getElementById(id);
 
@@ -1905,7 +1934,7 @@ function showOrderPrepared(tracking=null){
    '<button class="btn primary" id="finish" type="button">Вернуться в каталог</button>'+
   '</div>';
  $("finish").addEventListener("click",()=>{
-  cart={};updateCart();closeOverlay("checkoutOverlay");$("catalog").scrollIntoView({behavior:"smooth"});
+  cart=createCart({});updateCart();closeOverlay("checkoutOverlay");$("catalog").scrollIntoView({behavior:"smooth"});
  });
 }
 
