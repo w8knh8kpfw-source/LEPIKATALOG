@@ -20,6 +20,119 @@ const PRODUCT_STATUSES={available:"В наличии",preorder:"Готовим �
 const ORDER_STATUSES={new:"Получен",accepted:"Принят",preparing:"Готовится",ready:"Готов",courier:"Передан курьеру",completed:"Завершён",cancelled:"Отменён"};
 const FULFILLMENT_TYPES={delivery:"Доставка",pickup:"Самовывоз"};
 
+const PRODUCT_CATALOG={
+  chicken:{name:"Куриные котлеты с овощами",unitPrice:7,min:10},
+  classic:{name:"Сырники классические",unitPrice:6,min:10},
+  choco:{name:"Сырники шоколадные",unitPrice:7,min:10},
+  rafaello:{name:"Сырники «Рафаэлло»",unitPrice:7,min:10},
+  varenko:{name:"Сырники с варёнкой",unitPrice:7,min:10},
+  beef:{name:"Говяжьи котлеты",unitPrice:10,min:10},
+  meatp:{name:"Блинчики с мясом",unitPrice:9,min:10},
+  curdp:{name:"Блинчики с творогом",unitPrice:6,min:10},
+  condensed:{name:"Блинчики с варёной сгущёнкой",unitPrice:6,min:10},
+  apple:{name:"Блинчики с яблоком и корицей",unitPrice:7,min:10},
+  chopped:{name:"Рубленые куриные котлеты",unitPrice:7.5,min:8},
+  meatballs:{name:"Фрикадельки",unitPrice:25,min:1}
+};
+const RATE_LIMITS=new Map();
+const ORDER_REQUESTS=new Map();
+const RATE_WINDOW_MS=10*60*1000;
+const ORDER_REQUEST_TTL=15*60*1000;
+
+function clientKey(req){
+  const forwarded=String(req.headers["x-forwarded-for"]||"").split(",")[0].trim();
+  return (forwarded||req.socket.remoteAddress||"unknown").slice(0,100);
+}
+function rateLimit(req,key,limit,windowMs){
+  const now=Date.now(),bucket=key+":"+clientKey(req);
+  let entry=RATE_LIMITS.get(bucket);
+  if(!entry||now-entry.startedAt>=windowMs)entry={startedAt:now,count:0};
+  entry.count++;
+  RATE_LIMITS.set(bucket,entry);
+  if(RATE_LIMITS.size>5000){
+    for(const [k,v] of RATE_LIMITS)if(now-v.startedAt>windowMs)RATE_LIMITS.delete(k);
+  }
+  return {allowed:entry.count<=limit,retryAfter:Math.max(1,Math.ceil((windowMs-(now-entry.startedAt))/1000))};
+}
+function sendJson(res,status,payload,extraHeaders={}){
+  res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store",...extraHeaders});
+  res.end(JSON.stringify(payload));
+}
+function hasUnsafeControl(value){
+  return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value);
+}
+function priceForProduct(id,quantity){
+  if(id==="chopped")return quantity===8?60:60+(quantity-8)*7.5;
+  if(id==="classic")return Math.floor(quantity/10)*60+(quantity%10)*6;
+  if(id==="beef")return Math.floor(quantity/10)*100+(quantity%10)*10;
+  return PRODUCT_CATALOG[id].unitPrice*quantity;
+}
+function formatSomoni(value){
+  return (Number.isInteger(value)?String(value):value.toFixed(2).replace(/0+$/,"").replace(/\.$/,""))+" сомони";
+}
+function validateOrderPayload(order){
+  if(!order||typeof order!=="object"||Array.isArray(order))return {error:"Invalid order"};
+  const name=typeof order.name==="string"?order.name.trim():"";
+  const phone=typeof order.phone==="string"?order.phone.trim():"";
+  const address=typeof order.address==="string"?order.address.trim():"";
+  const comment=typeof order.comment==="string"?order.comment.trim():"";
+  const digits=phone.replace(/\D/g,"");
+  if(name.length<2||name.length>80||hasUnsafeControl(name))return {error:"Проверьте имя: от 2 до 80 символов."};
+  if(digits.length<7||digits.length>15||hasUnsafeControl(phone))return {error:"Проверьте номер телефона."};
+  if(address.length<5||address.length>250||hasUnsafeControl(address))return {error:"Проверьте адрес доставки."};
+  if(comment.length>500||hasUnsafeControl(comment))return {error:"Комментарий слишком длинный или содержит недопустимые символы."};
+  if(!Array.isArray(order.items)||order.items.length<1||order.items.length>12)return {error:"Некорректный состав заказа."};
+  const seen=new Set(),items=[];
+  for(const row of order.items){
+    if(!row||typeof row!=="object"||Array.isArray(row)||typeof row.id!=="string"||!Object.hasOwn(PRODUCT_CATALOG,row.id))return {error:"В заказе обнаружен неизвестный товар."};
+    const product=PRODUCT_CATALOG[row.id],quantity=row.quantity;
+    if(!Number.isSafeInteger(quantity)||quantity<product.min||quantity>200||seen.has(row.id))return {error:"Некорректное количество товара: "+product.name};
+    seen.add(row.id);
+    const total=priceForProduct(row.id,quantity);
+    if(!Number.isFinite(total)||total<=0)return {error:"Некорректная стоимость товара."};
+    items.push({id:row.id,name:product.name,quantity,total});
+  }
+  const total=items.reduce((sum,item)=>sum+item.total,0);
+  if(!Number.isFinite(total)||total<=0||total>100000)return {error:"Сумма заказа выходит за допустимые пределы."};
+  return {value:{name,phone,address,comment,items,total}};
+}
+async function processOrderPayload(order,record){
+  const checked=validateOrderPayload(order);
+  if(checked.error)return {status:400,body:{error:checked.error}};
+  const clean=checked.value;
+  let statuses;
+  try{statuses=await getProductStatuses()}
+  catch(error){console.error("Could not validate product availability:",error.message);return {status:503,body:{error:"Не удалось проверить наличие товаров. Попробуйте позже."}}}
+  const unavailable=clean.items.find(item=>(statuses[item.id]||"available")==="unavailable");
+  if(unavailable)return {status:409,body:{error:"Товар «"+unavailable.name+"» сейчас недоступен. Обновите корзину."}};
+  if(!record.trackingAttempted){
+    record.trackingAttempted=true;
+    try{record.trackedOrder=await createTrackedOrder({name:clean.name,items:clean.items.map(x=>({name:x.name,quantity:x.quantity,price:formatSomoni(x.total)})),total:formatSomoni(clean.total)})}
+    catch(error){console.warn("Order tracking is unavailable; continuing with Telegram delivery:",error.message)}
+  }
+  const itemText=clean.items.map(item=>item.name+" × "+item.quantity+" — "+formatSomoni(item.total)).join("\n");
+  const message=[
+    "🛍 НОВЫЙ ЗАКАЗ LEPÍ","",
+    "👤 Имя: "+clean.name,
+    "📞 Телефон: "+clean.phone,
+    "📍 Адрес: "+clean.address,
+    "","🧺 Заказ:",itemText,"",
+    "💰 Сумма: "+formatSomoni(clean.total),
+    "💬 Комментарий: "+(clean.comment||"Нет"),
+    ...(record.trackedOrder?["📦 Номер заказа: "+record.trackedOrder.order_number,"🔗 Отслеживание: "+record.trackedOrder.url,"","📦 Текущий статус: "+ORDER_STATUSES.new]:[])
+  ].join("\n");
+  const results=await Promise.all(CHAT_IDS.map(async chatId=>{
+    if(record.sentRecipients.has(chatId))return true;
+    try{
+      await telegram("sendMessage",{chat_id:chatId,text:message,...(record.trackedOrder?{reply_markup:orderFulfillmentKeyboard(record.trackedOrder.id)}:{})});
+      record.sentRecipients.add(chatId);
+      return true;
+    }catch(error){console.error("Order delivery failed:",error.message);return false}
+  }));
+  if(!results.every(Boolean))return {status:502,body:{error:"Не удалось доставить заказ всем получателям. Повторите отправку через минуту."}};
+  return {status:200,body:{success:true,tracking:record.trackedOrder?{orderNumber:record.trackedOrder.order_number,url:record.trackedOrder.url}:null}};
+}
+
 let polling = false;
 let offset = 0;
 
@@ -594,7 +707,12 @@ async function pollTelegram() {
 
 const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin;
-
+  res.setHeader("X-Content-Type-Options","nosniff");
+  res.setHeader("X-Frame-Options","DENY");
+  res.setHeader("Referrer-Policy","no-referrer");
+  res.setHeader("Permissions-Policy","camera=(), microphone=(), geolocation=()");
+  res.setHeader("Strict-Transport-Security","max-age=31536000; includeSubDomains");
+  res.setHeader("Cache-Control","no-store");
   res.setHeader(
     "Content-Type",
     "application/json; charset=utf-8"
@@ -605,7 +723,7 @@ const server = http.createServer(async (req, res) => {
   );
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type"
+    "Content-Type, X-Order-Request-Id"
   );
   res.setHeader("Access-Control-Max-Age", "86400");
 
