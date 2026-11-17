@@ -631,7 +631,7 @@ struct CheckoutView: View {
                                 .padding(14).background(.white).clipShape(RoundedRectangle(cornerRadius:14)).overlay(RoundedRectangle(cornerRadius:14).stroke(LEPIStyle.line))
                         }
                         Toggle(isOn:$privacyAccepted) {
-                            Text("Я согласен(на) с политикой конфиденциальности.")
+                            Text("Я согласен(на) с [политикой конфиденциальности](https://lepifoods.com/privacy.html).")
                                 .font(.system(size:12)).foregroundStyle(LEPIStyle.secondary)
                         }.tint(LEPIStyle.olive)
                         if let errorText {
