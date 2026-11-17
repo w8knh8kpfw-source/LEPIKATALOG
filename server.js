@@ -180,11 +180,17 @@ function supabaseHeaders(extra = {}) {
     throw new Error("Supabase environment variables are missing");
   }
 
-  // Новый ключ sb_secret_ передаём через apikey.
-  return {
+  // Supabase secret API keys (sb_secret_) are sent only as apikey.
+  // Legacy JWT service_role keys must also be sent as Bearer auth so
+  // PostgREST executes requests with the service_role instead of anon.
+  const headers = {
     apikey: SUPABASE_KEY,
     ...extra
   };
+  if (SUPABASE_KEY.startsWith("eyJ")) {
+    headers.Authorization = `Bearer ${SUPABASE_KEY}`;
+  }
+  return headers;
 }
 
 async function dbRequest(path, options = {}) {
@@ -208,7 +214,14 @@ async function dbRequest(path, options = {}) {
   return body ? JSON.parse(body) : null;
 }
 
-async function getProductStatuses(){const rows=await dbRequest("product_statuses?select=product_id,status");return Object.fromEntries(rows.map(row=>[row.product_id,row.status]))}
+async function getProductStatuses(){
+  const rows=await dbRequest("product_statuses?select=product_id,status");
+  if(!Array.isArray(rows))throw new Error("Product statuses response is invalid");
+  const statuses=Object.fromEntries(rows.map(row=>[row.product_id,row.status]));
+  const missing=PRODUCTS.filter(product=>!Object.hasOwn(statuses,product.id));
+  if(missing.length)throw new Error("Product statuses are missing for: "+missing.map(product=>product.id).join(", "));
+  return statuses;
+}
 async function setProductStatus(productId,status){if(!PRODUCTS.some(p=>p.id===productId)||!Object.hasOwn(PRODUCT_STATUSES,status))throw new Error("Invalid product status");return dbRequest("product_statuses?on_conflict=product_id",{method:"POST",headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({product_id:productId,status,updated_at:new Date().toISOString()})})}
 function productStatusKeyboard(productId,statuses){
   const current=statuses[productId]||"available";
