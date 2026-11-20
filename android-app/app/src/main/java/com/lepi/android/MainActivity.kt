@@ -6,425 +6,708 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.UUID
 
-private val Cream = Color(0xFFF5F2E9)
-private val Paper = Color(0xFFFFFEFA)
-private val Ink = Color(0xFF30372E)
-private val Muted = Color(0xFF85897D)
-private val Green = Color(0xFF667B5B)
-private val DeepGreen = Color(0xFF43583E)
-private val SoftGreen = Color(0xFFE5EADC)
-private val Line = Color(0xFFE6E8DE)
+private val Milk = Color(0xFFF7F6F0)
+private val Leaf = Color(0xFF63785B)
+private val Forest = Color(0xFF344B38)
+private val Charcoal = Color(0xFF27332B)
+private val Fog = Color(0xFF899187)
+private val GlassWhite = Color(0xDFFFFFFF)
+private val GlassLine = Color(0xBFFFFFFF)
 private const val IMAGE_ROOT = "https://raw.githubusercontent.com/w8knh8kpfw-source/LEPIKATALOG/main/images/"
-private fun image(name: String) = IMAGE_ROOT + name
 
-private data class Product(val id:String,val name:String,val category:String,val price:Double,val min:Int,val badge:String,val description:String,val photo:String,val ingredients:List<String>) {
-    val imageUrl get() = image(photo)
-}
-private val products = listOf(
-    Product("chicken","Куриные котлеты с овощами","Котлеты",7.0,10,"Хит продаж","Домашние куриные котлеты с овощами. Минимум 10 штук.", "cutlets-chicken-veg.jpg", listOf("Куриное филе","Лук","Морковь","Чеснок","Сливочное масло","Рисовая мука","Панировочные сухари","Соль","Чёрный молотый перец")),
-    Product("classic","Сырники классические","Сырники",6.0,10,"Классика","6 сомони за штуку или 60 сомони за 10 штук.","syrniki-classic.jpg",listOf("Творог 5%","Яйцо","Рисовая мука","Манная крупа","Сахар","Ванилин","Соль")),
-    Product("choco","Сырники шоколадные","Сырники",7.0,10,"Популярное","Шоколадные сырники. 10 штук — 70 сомони.","syrniki-chocolate.jpg",listOf("Творог 5%","Яйцо","Рисовая мука","Манная крупа","Сахар","Молочный шоколад","Ванилин")),
-    Product("rafaello","Сырники «Рафаэлло»","Сырники",7.0,10,"Десерт","Сырники с белым шоколадом и кокосовой стружкой.","syrniki-rafaello.jpg",listOf("Творог 5%","Яйцо","Рисовая мука","Манная крупа","Сахар","Белый шоколад","Кокосовая стружка","Ванилин")),
-    Product("varenko","Сырники с варёнкой","Сырники",7.0,10,"Новинка","Сырники с варёной сгущёнкой.","syrniki-varenka.jpg",listOf("Творог 5%","Яйцо","Рисовая мука","Манная крупа","Сахар","Варёная сгущёнка","Ванилин")),
-    Product("beef","Говяжьи котлеты","Котлеты",10.0,10,"Говядина","10 сомони за штуку или 100 сомони за 10 штук.","cutlets-beef.jpg",listOf("Говядина","Лук","Мякоть батона","Молоко","Яйцо","Сливочное масло","Панировочные сухари","Чеснок","Соль","Чёрный молотый перец")),
-    Product("meatp","Блинчики с мясом","Блинчики",9.0,10,"Хит продаж","Сытные блинчики с мясной начинкой.","crepes-meat.jpg",listOf("Тесто: молоко, пшеничная мука, яйцо, сахар, соль, ванилин, растительное и сливочное масло","Начинка: говядина, лук, сливочное масло, соль, перец")),
-    Product("curdp","Блинчики с творогом","Блинчики",6.0,10,"Любимый вкус","Блинчики с творожной начинкой.","crepes-curd.jpg",listOf("Тесто: молоко, пшеничная мука, яйцо, сахар, соль, ванилин","Начинка: творог 5%, сахар, сливочное масло, ванилин")),
-    Product("condensed","Блинчики с варёной сгущёнкой","Блинчики",6.0,10,"Новинка","Сладкие блинчики с варёной сгущёнкой.","crepes-condensed.jpg",listOf("Тесто: молоко, пшеничная мука, яйцо, сахар, соль, ванилин","Начинка: варёная сгущёнка, грецкие орехи")),
-    Product("apple","Блинчики с яблоком и корицей","Блинчики",7.0,10,"Хит сезона","Ароматное сочетание яблока и корицы.","crepes-apple.jpg",listOf("Тесто: молоко, пшеничная мука, яйцо, сахар, соль, ванилин","Начинка: яблоки, тростниковый сахар, сливочное масло, корица, лимонный сок")),
-    Product("chopped","Рубленые куриные котлеты","Котлеты",7.5,8,"Минимум 8 штук","Минимальный заказ — 8 штук за 60 сомони.","cutlets-chopped-chicken.jpg",listOf("Куриное филе","Сыр","Лук","Панировочные сухари","Яйцо","Укроп","Чеснок","Соль","Чёрный молотый перец")),
-    Product("meatballs","Фрикадельки","Фрикадельки",25.0,1,"250 г","Одна пачка весом 250 г — 25 сомони.","meatballs.jpg",listOf("Куриное филе","Лук","Панировочные сухари","Яйцо","Соль","Чёрный молотый перец"))
+private data class Dish(
+    val id: String,
+    val title: String,
+    val category: String,
+    val price: Int,
+    val unit: String,
+    val image: String,
+    val note: String
 )
-private data class Review(val name:String,val text:String,val photo:String?)
-private data class OrderResult(val number:String?,val url:String?)
 
-private object Api {
-    private const val BASE = "https://lepi-orders.onrender.com"
-    private suspend fun request(path:String,method:String="GET",body:String?=null,requestId:String?=null):String = withContext(Dispatchers.IO) {
-        val c = URL(BASE + path).openConnection() as HttpURLConnection
-        try {
-            c.requestMethod = method
-            c.connectTimeout = 18000
-            c.readTimeout = 25000
-            c.setRequestProperty("Accept","application/json")
-            if (method == "POST") {
-                c.doOutput = true
-                c.setRequestProperty("Content-Type","application/json; charset=utf-8")
-                c.setRequestProperty("Origin","https://lepikatalog.onrender.com")
-                c.setRequestProperty("X-Order-Request-Id",requestId ?: UUID.randomUUID().toString())
-                c.outputStream.use { it.write((body ?: "{}").toByteArray(Charsets.UTF_8)) }
-            }
-            val code = c.responseCode
-            val stream = if (code in 200..299) c.inputStream else c.errorStream
-            val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
-            if (code !in 200..299) {
-                val message = runCatching { JSONObject(text).optString("error") }.getOrNull().orEmpty()
-                throw IOException(message.ifBlank { "Ошибка сервера: " + code })
-            }
-            text
-        } finally { c.disconnect() }
-    }
-    suspend fun statuses():Map<String,String> {
-        val source = JSONObject(request("/api/product-statuses")).getJSONObject("statuses")
-        return products.associate { it.id to source.optString(it.id,"unknown") }
-    }
-    suspend fun reviews():List<Review> {
-        val array = JSONObject(request("/api/reviews")).optJSONArray("reviews") ?: JSONArray()
-        return (0 until array.length()).map {
-            val item = array.getJSONObject(it)
-            Review(item.optString("name","Покупатель LEPÍ"),item.optString("text"),item.optString("photo").takeIf { url -> url.startsWith("https://") })
-        }
-    }
-    suspend fun order(name:String,phone:String,address:String,comment:String,cart:Map<String,Int>):OrderResult {
-        val rows = JSONArray()
-        cart.forEach { (id,qty) -> rows.put(JSONObject().put("id",id).put("quantity",qty)) }
-        val body = JSONObject().put("name",name).put("phone",phone).put("address",address).put("comment",comment).put("items",rows)
-        val result = JSONObject(request("/api/order","POST",body.toString(),UUID.randomUUID().toString()))
-        val tracking = result.optJSONObject("tracking")
-        return OrderResult(tracking?.optString("orderNumber"),tracking?.optString("url"))
+private val menu = listOf(
+    Dish("classic", "Сырники классические", "Сырники", 60, "10 штук", "syrniki-classic.jpg", "Нежные сырники для уютного завтрака."),
+    Dish("rafaello", "Сырники «Рафаэлло»", "Сырники", 70, "10 штук", "syrniki-rafaello.jpg", "С белым шоколадом и кокосовой стружкой."),
+    Dish("condensed", "Сырники со сгущёнкой", "Сырники", 70, "10 штук", "syrniki-condensed.jpg", "Сладкая начинка из сгущёнки."),
+    Dish("chicken", "Куриные котлеты с овощами", "Котлеты", 70, "10 штук", "cutlets-chicken-veg.jpg", "Домашние котлеты из курицы и овощей."),
+    Dish("beef", "Говяжьи котлеты", "Котлеты", 100, "10 штук", "cutlets-beef.jpg", "Сытные котлеты из говядины."),
+    Dish("chopped", "Рубленые куриные котлеты с сыром", "Котлеты", 60, "8 штук", "cutlets-chopped-chicken.jpg", "Куриное филе, сыр и зелень."),
+    Dish("meatballs", "Фрикадельки", "Фрикадельки", 25, "250 г", "meatballs.jpg", "Удобная порция для домашнего обеда."),
+    Dish("meat-pancakes", "Блинчики с мясом", "Блинчики", 90, "10 штук", "crepes-meat.jpg", "Тонкие блинчики с мясной начинкой."),
+    Dish("curd-pancakes", "Блинчики с творогом", "Блинчики", 60, "10 штук", "crepes-curd.jpg", "Нежная творожная начинка."),
+    Dish("sweet-pancakes", "Блинчики со сгущёнкой", "Блинчики", 50, "10 штук", "crepes-condensed.jpg", "Сладкий вариант к чаю.")
+)
+
+private enum class Page(val label: String, val icon: ImageVector) {
+    HOME("Главная", Icons.Default.Home),
+    MENU("Каталог", Icons.Default.GridView),
+    CART("Корзина", Icons.Default.ShoppingBag),
+    ABOUT("О нас", Icons.Default.Info)
+}
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent { LepiGlassApp(this) }
     }
 }
 
-private enum class Tab(val label:String,val icon:ImageVector) {
-    HOME("Главная",Icons.Default.Home), CATALOG("Каталог",Icons.Default.MenuBook),
-    CART("Корзина",Icons.Default.ShoppingCart), REVIEWS("Отзывы",Icons.Default.Star), ABOUT("О нас",Icons.Default.Info)
-}
-
-class MainActivity:ComponentActivity() {
-    override fun onCreate(savedInstanceState:Bundle?) { super.onCreate(savedInstanceState); setContent { LepiApp(this) } }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable private fun LepiApp(context:Context) {
-    var tab by remember { mutableStateOf(Tab.HOME) }
-    val cart = remember { mutableStateMapOf<String,Int>().apply { putAll(loadCart(context)) } }
-    val statuses = remember { mutableStateMapOf<String,String>() }
-    val reviews = remember { mutableStateListOf<Review>() }
-    var loadingReviews by remember { mutableStateOf(true) }
-    var selected by remember { mutableStateOf<Product?>(null) }
+@Composable
+private fun LepiGlassApp(context: Context) {
+    var welcome by remember { mutableStateOf(true) }
+    var page by remember { mutableStateOf(Page.HOME) }
+    var selected by remember { mutableStateOf<Dish?>(null) }
     var checkout by remember { mutableStateOf(false) }
-    var success by remember { mutableStateOf<OrderResult?>(null) }
-    val wide = LocalConfiguration.current.screenWidthDp >= 720
-    val count = cart.values.sum()
-    LaunchedEffect(Unit) {
-        runCatching { statuses.putAll(Api.statuses()) }
-        try { reviews.addAll(Api.reviews()) } catch (_:Exception) { } finally { loadingReviews = false }
-    }
-    LaunchedEffect(cart.toMap()) { saveCart(context,cart.toMap()) }
-    MaterialTheme(colorScheme = lightColorScheme(primary=Green,secondary=DeepGreen,background=Cream,surface=Paper,onSurface=Ink)) {
-        Scaffold(
-            containerColor=Cream,
-            topBar={ CenterAlignedTopAppBar(
-                title={ Column(horizontalAlignment=Alignment.CenterHorizontally) {
-                    Text("LEPÍ",fontFamily=FontFamily.Serif,fontSize=28.sp,fontWeight=FontWeight.SemiBold,letterSpacing=4.sp,color=DeepGreen)
-                    Text("ВКУС ДОМАШНЕГО УЮТА",fontSize=8.sp,letterSpacing=1.8.sp,color=Muted)
-                } },
-                actions={ BadgedBox(badge={ if(count>0) Badge { Text(count.toString()) } }) {
-                    IconButton(onClick={tab=Tab.CART}) { Icon(Icons.Default.ShoppingCart,contentDescription="Корзина",tint=DeepGreen) }
-                } },
-                colors=TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor=Cream)
-            ) },
-            bottomBar={ if(!wide) NavigationBar(containerColor=Paper) {
-                Tab.entries.forEach { item -> NavigationBarItem(selected=tab==item,onClick={tab=item},icon={Icon(item.icon,contentDescription=item.label)},label={Text(item.label,fontSize=10.sp)}) }
-            } }
-        ) { pad ->
-            Row(Modifier.fillMaxSize().padding(pad)) {
-                if(wide) NavigationRail(containerColor=Cream) {
-                    Tab.entries.forEach { item -> NavigationRailItem(selected=tab==item,onClick={tab=item},icon={Icon(item.icon,contentDescription=item.label)},label={Text(item.label,fontSize=10.sp)},alwaysShowLabel=true) }
-                }
-                Box(Modifier.weight(1f).fillMaxHeight()) {
-                    when(tab) {
-                        Tab.HOME -> HomeScreen({tab=Tab.CATALOG},{selected=it})
-                        Tab.CATALOG -> CatalogScreen(statuses,{selected=it},{ p -> cart[p.id]=(cart[p.id] ?: 0).let { q -> if(q==0) p.min else q+1 } })
-                        Tab.CART -> CartScreen(cart,{id -> cart[id]=minOf((cart[id] ?: 0)+1,200)},{id -> val p=products.first{it.id==id}; val q=cart[id] ?: 0; if(q<=p.min) cart.remove(id) else cart[id]=q-1},{id->cart.remove(id)},{checkout=true})
-                        Tab.REVIEWS -> ReviewsScreen(reviews,loadingReviews)
-                        Tab.ABOUT -> AboutScreen(context)
+    var sending by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf<String?>(null) }
+    val cart = remember { mutableStateMapOf<String, Int>().apply { putAll(readCart(context)) } }
+    val scope = rememberCoroutineScope()
+    val quantity = cart.values.sum()
+
+    LaunchedEffect(cart.toMap()) { writeCart(context, cart.toMap()) }
+
+    MaterialTheme(
+        colorScheme = lightColorScheme(
+            primary = Leaf, secondary = Forest, background = Milk,
+            surface = Color.White, onSurface = Charcoal
+        )
+    ) {
+        Box(Modifier.fillMaxSize().background(
+            Brush.verticalGradient(listOf(Color(0xFFF9F8F2), Color(0xFFECEFE5), Color(0xFFF5F4EE)))
+        )) {
+            AnimatedContent(targetState = welcome, label = "welcome-transition") { isWelcome ->
+                if (isWelcome) WelcomeScreen { welcome = false }
+                else MainShell(page, quantity, { page = it }, cart,
+                    onDish = { selected = it },
+                    onAdd = { dish -> cart[dish.id] = (cart[dish.id] ?: 0) + 1 },
+                    onPlus = { id -> cart[id] = (cart[id] ?: 0) + 1 },
+                    onMinus = { id ->
+                        val count = cart[id] ?: 0
+                        if (count <= 1) cart.remove(id) else cart[id] = count - 1
+                    },
+                    onRemove = { cart.remove(it) },
+                    onCheckout = { checkout = true },
+                    onAbout = { openInstagram(context) }
+                )
+            }
+            selected?.let { dish ->
+                DishSheet(dish, onClose = { selected = null }, onAdd = {
+                    cart[dish.id] = (cart[dish.id] ?: 0) + 1
+                    selected = null
+                    page = Page.CART
+                })
+            }
+            if (checkout) CheckoutSheet(
+                busy = sending,
+                onClose = { if (!sending) checkout = false },
+                onSubmit = { name, phone, address, note ->
+                    sending = true
+                    scope.launch {
+                        try {
+                            val result = sendOrder(name, phone, address, note, cart.toMap())
+                            cart.clear()
+                            checkout = false
+                            message = if (result.isBlank()) "Мы скоро свяжемся с вами для подтверждения." else "Заказ принят. Номер: " + result
+                        } catch (e: Exception) {
+                            message = e.message ?: "Не удалось отправить заказ. Попробуйте ещё раз."
+                        } finally { sending = false }
                     }
                 }
+            )
+            message?.let { text ->
+                AlertDialog(
+                    onDismissRequest = { message = null },
+                    containerColor = Color.White,
+                    title = { Text("LEPÍ", fontFamily = FontFamily.Serif, color = Forest) },
+                    text = { Text(text, color = Charcoal) },
+                    confirmButton = { TextButton(onClick = { message = null }) { Text("Хорошо") } }
+                )
             }
-        }
-        selected?.let { p -> ProductDialog(p,statuses[p.id] ?: "unknown",{selected=null},{
-            cart[p.id]=(cart[p.id] ?: 0).let { if(it==0) p.min else it+1 }; selected=null; tab=Tab.CART
-        }) }
-        if(checkout) CheckoutDialog(close={checkout=false},submit={ name,phone,address,comment -> Api.order(name,phone,address,comment,cart.toMap()) },onSuccess={ result -> cart.clear(); checkout=false; success=result })
-        success?.let { result -> AlertDialog(onDismissRequest={success=null},containerColor=Paper,
-            icon={Icon(Icons.Default.CheckCircle,contentDescription=null,tint=Green,modifier=Modifier.size(42.dp))},
-            title={Text("Спасибо за заказ!",color=DeepGreen)},
-            text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                Text("Мы получили ваш заказ. Скоро свяжемся с вами для подтверждения.")
-                if(!result.number.isNullOrBlank()) Text("Номер заказа: " + result.number,fontWeight=FontWeight.Bold)
-                if(!result.url.isNullOrBlank()) TextButton(onClick={openUrl(context,result.url)}) { Text("Отследить заказ") }
-            }},
-            confirmButton={TextButton(onClick={success=null}) { Text("Готово") }})
         }
     }
 }
 
-@Composable private fun Heading(kicker:String,title:String) {
-    Column(verticalArrangement=Arrangement.spacedBy(3.dp)) {
-        Text(kicker.uppercase(),color=Green,fontSize=9.sp,letterSpacing=1.5.sp,fontWeight=FontWeight.Bold)
-        Text(title,fontFamily=FontFamily.Serif,fontSize=30.sp,color=Ink)
+@Composable
+private fun WelcomeScreen(onEnter: () -> Unit) {
+    val transition = rememberInfiniteTransition(label = "welcome-float")
+    val drift by transition.animateFloat(
+        initialValue = -8f, targetValue = 8f,
+        animationSpec = infiniteRepeatable(tween(3200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "drift"
+    )
+    val appear by animateFloatAsState(1f, animationSpec = tween(900), label = "appear")
+    Box(Modifier.fillMaxSize().padding(22.dp), contentAlignment = Alignment.Center) {
+        GlassPanel(Modifier.fillMaxWidth().offset(y = drift.dp).alpha(appear), radius = 36.dp) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 25.dp, vertical = 34.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(17.dp)
+            ) {
+                Box(
+                    Modifier.size(82.dp).clip(CircleShape)
+                        .background(Brush.linearGradient(listOf(Color(0xFFE6EDDE), Color.White, Color(0xFFC9D7BF)))),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("L", fontFamily = FontFamily.Serif, fontSize = 54.sp, color = Forest)
+                }
+                Text("LEPÍ", fontFamily = FontFamily.Serif, fontSize = 42.sp, letterSpacing = 7.sp, color = Forest)
+                Text("ВКУС ДОМАШНЕГО УЮТА", fontSize = 10.sp, letterSpacing = 2.4.sp, color = Fog)
+                Box(Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(25.dp))) {
+                    Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xFFE4EBDD), Color(0xFFF9F7EF), Color(0xFFD8E1D0)))))
+                    AsyncImage(
+                        model = IMAGE_ROOT + "hero-bags.jpg",
+                        contentDescription = "Фирменная упаковка LEPÍ",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text("Домашнее,\nс любовью.", Modifier.align(Alignment.BottomStart).padding(17.dp),
+                        color = Forest, fontFamily = FontFamily.Serif, fontSize = 29.sp, lineHeight = 31.sp)
+                }
+                Text("Любимые блюда и заготовки,\nкоторые делают каждый день уютнее.",
+                    color = Fog, fontSize = 13.sp, lineHeight = 20.sp)
+                GlassButton("Открыть LEPÍ", onEnter, Modifier.fillMaxWidth())
+                Text("ХУДЖАНД · ТАДЖИКИСТАН", color = Fog, fontSize = 9.sp, letterSpacing = 1.8.sp)
+            }
+        }
     }
 }
-@Composable private fun HomeScreen(onCatalog:()->Unit,onProduct:(Product)->Unit) {
-    val apple=products.first{it.id=="apple"}
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(17.dp),verticalArrangement=Arrangement.spacedBy(18.dp)) {
-        Surface(shape=RoundedCornerShape(28.dp),color=SoftGreen,border=BorderStroke(1.dp,Color.White)) {
+
+@Composable
+private fun MainShell(
+    page: Page,
+    quantity: Int,
+    onPage: (Page) -> Unit,
+    cart: Map<String, Int>,
+    onDish: (Dish) -> Unit,
+    onAdd: (Dish) -> Unit,
+    onPlus: (String) -> Unit,
+    onMinus: (String) -> Unit,
+    onRemove: (String) -> Unit,
+    onCheckout: () -> Unit,
+    onAbout: () -> Unit
+) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        Row(
+            Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Column {
-                AsyncImage(image("hero-bags.jpg"),"Фирменная упаковка LEPÍ",Modifier.fillMaxWidth().heightIn(min=190.dp,max=300.dp),contentScale=ContentScale.Crop)
-                Column(Modifier.padding(21.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-                    Text("ДОМАШНЯЯ КУХНЯ · ХУДЖАНД",color=DeepGreen,fontSize=10.sp,letterSpacing=1.5.sp,fontWeight=FontWeight.Bold)
-                    Text("Вкус, который\\nсогревает.",fontFamily=FontFamily.Serif,fontSize=42.sp,lineHeight=44.sp,color=Ink)
-                    Text("Любимые домашние блюда, приготовленные с заботой. Заготовки, чтобы вкусный домашний стол не требовал долгих приготовлений.",color=Muted,fontSize=13.sp,lineHeight=21.sp)
-                    Button(onClick=onCatalog,colors=ButtonDefaults.buttonColors(containerColor=Green),shape=RoundedCornerShape(14.dp)) {
-                        Text("Открыть каталог"); Spacer(Modifier.width(8.dp)); Icon(Icons.Default.ArrowForward,null,Modifier.size(17.dp))
+                Text("LEPÍ", fontFamily = FontFamily.Serif, fontSize = 27.sp, letterSpacing = 4.sp, color = Forest)
+                Text("ДОМАШНИЙ ВКУС РЯДОМ", fontSize = 8.sp, letterSpacing = 1.5.sp, color = Fog)
+            }
+            GlassIconButton(Icons.Default.ShoppingBag, quantity, { onPage(Page.CART) })
+        }
+        Box(Modifier.weight(1f)) {
+            Crossfade(targetState = page, animationSpec = tween(260), label = "page") { current ->
+                when (current) {
+                    Page.HOME -> HomePage(onPage, onDish)
+                    Page.MENU -> MenuPage(onDish, onAdd)
+                    Page.CART -> CartPage(cart, onPlus, onMinus, onRemove, onCheckout)
+                    Page.ABOUT -> AboutPage(onAbout)
+                }
+            }
+        }
+        GlassPanel(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 10.dp), radius = 25.dp) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 7.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                Page.entries.forEach { item ->
+                    val active = page == item
+                    val scale by animateFloatAsState(if (active) 1.04f else 1f, label = "nav-scale")
+                    Column(
+                        Modifier.weight(1f).scale(scale).clip(RoundedCornerShape(18.dp))
+                            .clickable { onPage(item) }.padding(vertical = 5.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(item.icon, contentDescription = item.label,
+                            tint = if (active) Forest else Fog, modifier = Modifier.size(21.dp))
+                        Spacer(Modifier.height(3.dp))
+                        Text(item.label, color = if (active) Forest else Fog,
+                            fontSize = 9.sp, fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal)
                     }
                 }
             }
         }
-        Heading("ХИТ СЕЗОНА","Яблоко и корица")
-        Surface(shape=RoundedCornerShape(23.dp),color=Paper,border=BorderStroke(1.dp,Color.White),modifier=Modifier.fillMaxWidth().clickable{onProduct(apple)}) {
-            Column {
-                AsyncImage(image("season-crepes.jpg"),"Блинчики с яблоком и корицей",Modifier.fillMaxWidth().height(210.dp),contentScale=ContentScale.Crop)
-                Column(Modifier.padding(15.dp)) {
-                    Text("НОВИНКА LEPÍ",color=Green,fontSize=10.sp,letterSpacing=1.3.sp,fontWeight=FontWeight.Bold)
-                    Text(apple.name,fontFamily=FontFamily.Serif,fontSize=25.sp,color=Ink)
-                    Text("10 штук — 70 сомони",color=Muted,fontSize=12.sp)
+    }
+}
+
+@Composable
+private fun HomePage(onPage: (Page) -> Unit, onDish: (Dish) -> Unit) {
+    val featured = menu.first { it.id == "rafaello" }
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(17.dp),
+        contentPadding = PaddingValues(bottom = 18.dp)
+    ) {
+        item {
+            GlassPanel(Modifier.fillMaxWidth(), radius = 29.dp) {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("ПРИГОТОВЛЕНО С ЗАБОТОЙ", color = Leaf, fontSize = 9.sp, letterSpacing = 1.7.sp, fontWeight = FontWeight.Bold)
+                    Text("Маленькие моменты.\nБольшой домашний уют.", color = Forest,
+                        fontFamily = FontFamily.Serif, fontSize = 32.sp, lineHeight = 35.sp)
+                    Text("Домашние полуфабрикаты, чтобы вкусная еда была ближе каждый день.",
+                        color = Fog, fontSize = 12.sp, lineHeight = 18.sp)
+                    GlassPhoto("hero-bags.jpg", "Фирменная упаковка LEPÍ", Modifier.fillMaxWidth().height(175.dp))
+                    GlassButton("Смотреть каталог", { onPage(Page.MENU) }, Modifier.fillMaxWidth())
                 }
             }
         }
-        Heading("ВЫБЕРИТЕ СВОЁ","Любимые категории")
-        LazyVerticalGrid(columns=GridCells.Fixed(2),modifier=Modifier.height(265.dp),userScrollEnabled=false,horizontalArrangement=Arrangement.spacedBy(9.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
-            item { CategoryTile("Блинчики","crepes-process.jpg",onCatalog) }
-            item { CategoryTile("Сырники","syrniki-classic.jpg",onCatalog) }
-            item { CategoryTile("Котлеты","cutlets-chicken-veg.jpg",onCatalog) }
-            item { CategoryTile("Фрикадельки","meatballs.jpg",onCatalog) }
+        item { SectionTitle("ВЫБРАЛИ ДЛЯ ВАС", "Любимые вкусы") }
+        item { FeaturedDish(featured, onDish) }
+        item { SectionTitle("ВСЁ ДЛЯ УЮТНОГО СТОЛА", "Категории") }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                CategoryCard("Сырники", "syrniki-classic.jpg", Modifier.weight(1f)) { onPage(Page.MENU) }
+                CategoryCard("Котлеты", "cutlets-chicken-veg.jpg", Modifier.weight(1f)) { onPage(Page.MENU) }
+            }
         }
-        Surface(shape=RoundedCornerShape(22.dp),color=Paper,border=BorderStroke(1.dp,Color.White)) {
-            Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                AsyncImage(image("packaging.jpg"),"Упаковка LEPÍ",Modifier.size(100.dp).clip(RoundedCornerShape(16.dp)),contentScale=ContentScale.Crop)
-                Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                    Text("НЕМНОГО О НАС",color=Green,fontSize=9.sp,letterSpacing=1.2.sp,fontWeight=FontWeight.Bold)
-                    Text("Домашний вкус. Без лишней суеты.",fontFamily=FontFamily.Serif,fontSize=21.sp,color=Ink)
-                    Text("Удобные заготовки для уютных домашних моментов.",color=Muted,fontSize=11.sp)
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                CategoryCard("Блинчики", "crepes-meat.jpg", Modifier.weight(1f)) { onPage(Page.MENU) }
+                CategoryCard("Фрикадельки", "meatballs.jpg", Modifier.weight(1f)) { onPage(Page.MENU) }
+            }
+        }
+        item {
+            GlassPanel(Modifier.fillMaxWidth(), radius = 22.dp) {
+                Column(Modifier.padding(18.dp)) {
+                    Text("LEPÍ", fontFamily = FontFamily.Serif, fontSize = 25.sp, color = Forest)
+                    Text("Домашний вкус. Без лишней суеты.", color = Charcoal, fontSize = 13.sp)
+                    Text("Худжанд · Доставка по городу", color = Fog, fontSize = 11.sp)
                 }
             }
         }
-        Text("LEPÍ · Худжанд, Таджикистан",color=Muted,fontSize=11.sp,modifier=Modifier.align(Alignment.CenterHorizontally))
     }
 }
-@Composable private fun CategoryTile(title:String,photo:String,onClick:()->Unit) {
-    Box(Modifier.fillMaxSize().clip(RoundedCornerShape(17.dp)).clickable(onClick=onClick)) {
-        AsyncImage(image(photo),title,Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
-        Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0x99000000)).padding(11.dp)) {
-            Text(title,color=Color.White,fontFamily=FontFamily.Serif,fontSize=21.sp)
-        }
+
+@Composable
+private fun MenuPage(onDish: (Dish) -> Unit, onAdd: (Dish) -> Unit) {
+    var filter by remember { mutableStateOf("Все") }
+    var search by remember { mutableStateOf("") }
+    val categories = listOf("Все", "Сырники", "Котлеты", "Блинчики", "Фрикадельки")
+    val visible = menu.filter {
+        (filter == "Все" || it.category == filter) && it.title.contains(search, ignoreCase = true)
     }
-}
-@Composable private fun CatalogScreen(statuses:Map<String,String>,onProduct:(Product)->Unit,onAdd:(Product)->Unit) {
-    var query by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Все") }
-    val categories=listOf("Все","Блинчики","Сырники","Котлеты","Фрикадельки")
-    val filtered=products.filter { (category=="Все" || it.category==category) && (query.isBlank() || it.name.contains(query,true)) }
-    Column(Modifier.fillMaxSize().padding(horizontal=15.dp,vertical=12.dp)) {
-        Heading("НАШЕ МЕНЮ","Каталог LEPÍ")
+    Column {
+        SectionTitle("МЕНЮ LEPÍ", "Каталог")
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),placeholder={Text("Найти любимое блюдо…",fontSize=13.sp)},leadingIcon={Icon(Icons.Default.Search,null,tint=Muted)},singleLine=true,shape=RoundedCornerShape(14.dp))
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-            categories.forEach { FilterChip(selected=category==it,onClick={category=it},label={Text(if(it=="Все") "Всё меню" else it,fontSize=11.sp)}) }
+        OutlinedTextField(
+            value = search, onValueChange = { search = it },
+            modifier = Modifier.fillMaxWidth(), singleLine = true,
+            placeholder = { Text("Найти блюдо", fontSize = 13.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, null, tint = Fog) },
+            shape = RoundedCornerShape(18.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = GlassWhite, focusedContainerColor = Color.White,
+                unfocusedBorderColor = GlassLine, focusedBorderColor = Leaf
+            )
+        )
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            categories.forEach { category ->
+                FilterChip(
+                    selected = filter == category, onClick = { filter = category },
+                    label = { Text(category, fontSize = 11.sp) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Color(0xFFDDE7D6), selectedLabelColor = Forest
+                    )
+                )
+            }
         }
-        Text(filtered.size.toString()+" товаров · цены в сомони",color=Muted,fontSize=10.sp,modifier=Modifier.padding(vertical=7.dp))
-        if(filtered.isEmpty()) Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Text("Ничего не найдено",color=Muted)}
-        else LazyVerticalGrid(columns=GridCells.Adaptive(155.dp),modifier=Modifier.weight(1f),contentPadding=PaddingValues(bottom=20.dp),horizontalArrangement=Arrangement.spacedBy(9.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
-            items(filtered,key={it.id}) { p -> ProductCard(p,statuses[p.id] ?: "unknown",onProduct){onAdd(p)} }
+        if (visible.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Ничего не найдено", color = Fog)
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(148.dp),
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(bottom = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(visible, key = { it.id }) { dish -> DishCard(dish, { onDish(dish) }, { onAdd(dish) }) }
+            }
         }
     }
 }
-@Composable private fun ProductCard(p:Product,status:String,onProduct:(Product)->Unit,onAdd:()->Unit) {
-    Surface(Modifier.fillMaxWidth().clickable{onProduct(p)},color=Paper,shape=RoundedCornerShape(19.dp),border=BorderStroke(1.dp,Color.White),shadowElevation=2.dp) {
+
+@Composable
+private fun DishCard(dish: Dish, onOpen: () -> Unit, onAdd: () -> Unit) {
+    GlassPanel(Modifier.fillMaxWidth().clickable(onClick = onOpen), radius = 22.dp) {
         Column {
-            Box {
-                AsyncImage(p.imageUrl,p.name,Modifier.fillMaxWidth().aspectRatio(1f),contentScale=ContentScale.Crop)
-                Surface(Modifier.align(Alignment.TopStart).padding(7.dp),color=Color(0xEFFFFFFF),shape=RoundedCornerShape(30.dp)){Text(p.badge,Modifier.padding(horizontal=8.dp,vertical=5.dp),fontSize=9.sp,color=DeepGreen)}
-            }
-            Column(Modifier.padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                Text(p.category.uppercase(),color=Muted,fontSize=8.sp,letterSpacing=1.sp)
-                Text(p.name,color=Ink,fontWeight=FontWeight.SemiBold,fontSize=12.sp,minLines=2,maxLines=2,overflow=TextOverflow.Ellipsis)
-                Text(statusText(status),color=statusColor(status),fontSize=9.sp)
-                Text(priceText(p),color=DeepGreen,fontSize=11.sp,fontWeight=FontWeight.Bold)
-                Button(onClick=onAdd,enabled=status!="unavailable",modifier=Modifier.fillMaxWidth().height(36.dp),shape=RoundedCornerShape(11.dp),contentPadding=PaddingValues(5.dp),colors=ButtonDefaults.buttonColors(containerColor=Green)){Icon(Icons.Default.Add,null,Modifier.size(15.dp));Text("Добавить",fontSize=10.sp)}
+            GlassPhoto(dish.image, dish.title, Modifier.fillMaxWidth().height(130.dp))
+            Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(dish.category.uppercase(), color = Leaf, fontSize = 8.sp, letterSpacing = 1.1.sp)
+                Text(dish.title, color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(dish.price.toString() + " сомони · " + dish.unit, color = Forest, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                GlassButton("Добавить", onAdd, Modifier.fillMaxWidth(), compact = true)
             }
         }
     }
 }
-@Composable private fun ProductDialog(p:Product,status:String,onClose:()->Unit,onAdd:()->Unit) {
-    AlertDialog(onDismissRequest=onClose,containerColor=Paper,title={Text(p.name,fontFamily=FontFamily.Serif,fontSize=24.sp,color=DeepGreen)},text={
-        Column(Modifier.heightIn(max=490.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(9.dp)) {
-            AsyncImage(p.imageUrl,p.name,Modifier.fillMaxWidth().height(205.dp).clip(RoundedCornerShape(16.dp)),contentScale=ContentScale.Crop)
-            Text(p.description,color=Muted,fontSize=13.sp)
-            Text("Наличие: "+statusText(status),color=statusColor(status),fontWeight=FontWeight.SemiBold,fontSize=12.sp)
-            Text(priceText(p),color=DeepGreen,fontWeight=FontWeight.Bold)
-            Text("СОСТАВ",color=Green,fontSize=10.sp,fontWeight=FontWeight.Bold,letterSpacing=1.3.sp)
-            p.ingredients.forEach { Text("• "+it,color=Ink,fontSize=12.sp,lineHeight=18.sp) }
-            Text("При аллергии уточните информацию перед заказом.",color=Muted,fontSize=10.sp)
+
+@Composable
+private fun FeaturedDish(dish: Dish, onDish: (Dish) -> Unit) {
+    GlassPanel(Modifier.fillMaxWidth().clickable { onDish(dish) }, radius = 24.dp) {
+        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            GlassPhoto(dish.image, dish.title, Modifier.size(116.dp))
+            Spacer(Modifier.width(13.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("ПОПУЛЯРНОЕ", color = Leaf, fontSize = 8.sp, letterSpacing = 1.2.sp)
+                Text(dish.title, color = Forest, fontFamily = FontFamily.Serif, fontSize = 21.sp, lineHeight = 23.sp)
+                Text(dish.price.toString() + " сомони", color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Text("Подробнее  →", color = Leaf, fontSize = 11.sp)
+            }
         }
-    },confirmButton={Button(onClick=onAdd,enabled=status!="unavailable",colors=ButtonDefaults.buttonColors(containerColor=Green)){Text("Добавить в корзину")}},dismissButton={TextButton(onClick=onClose){Text("Закрыть")}})
+    }
 }
-@Composable private fun CartScreen(cart:Map<String,Int>,plus:(String)->Unit,minus:(String)->Unit,remove:(String)->Unit,checkout:()->Unit) {
-    val chosen=products.filter{(cart[it.id] ?: 0)>0}
-    val total=chosen.sumOf{cost(it,cart[it.id] ?: 0)}
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Heading("ВАШ ВЫБОР","Корзина")
+
+@Composable
+private fun CategoryCard(title: String, photo: String, modifier: Modifier, onClick: () -> Unit) {
+    GlassPanel(modifier.clickable(onClick = onClick), radius = 21.dp) {
+        Column {
+            GlassPhoto(photo, title, Modifier.fillMaxWidth().height(105.dp))
+            Text(title, Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                color = Forest, fontFamily = FontFamily.Serif, fontSize = 18.sp)
+        }
+    }
+}
+
+@Composable
+private fun CartPage(
+    cart: Map<String, Int>,
+    onPlus: (String) -> Unit,
+    onMinus: (String) -> Unit,
+    onRemove: (String) -> Unit,
+    onCheckout: () -> Unit
+) {
+    val selected = menu.filter { (cart[it.id] ?: 0) > 0 }
+    val total = selected.sumOf { it.price * (cart[it.id] ?: 0) }
+    Column(Modifier.fillMaxSize()) {
+        SectionTitle("ВАШ ВЫБОР", "Корзина")
         Spacer(Modifier.height(12.dp))
-        if(chosen.isEmpty()) Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Column(horizontalAlignment=Alignment.CenterHorizontally){Icon(Icons.Default.ShoppingCart,null,tint=Green,modifier=Modifier.size(45.dp));Text("Корзина пока пуста",fontFamily=FontFamily.Serif,fontSize=24.sp,color=DeepGreen);Text("Добавьте любимые блюда из каталога.",color=Muted,fontSize=12.sp)}}
-        else {
-            LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(9.dp),contentPadding=PaddingValues(bottom=10.dp)) {
-                items(chosen,key={it.id}) { p ->
-                    val q=cart[p.id] ?: 0
-                    Surface(color=Paper,shape=RoundedCornerShape(17.dp),border=BorderStroke(1.dp,Color.White)) {
-                        Row(Modifier.fillMaxWidth().padding(9.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(9.dp)) {
-                            AsyncImage(p.imageUrl,p.name,Modifier.size(75.dp).clip(RoundedCornerShape(12.dp)),contentScale=ContentScale.Crop)
-                            Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                                Text(p.name,fontSize=12.sp,fontWeight=FontWeight.SemiBold,color=Ink,maxLines=2)
-                                Text(quantityText(p,q)+" · "+money(cost(p,q)),fontSize=10.sp,color=DeepGreen,fontWeight=FontWeight.Bold)
-                                Row(verticalAlignment=Alignment.CenterVertically) {
-                                    IconButton(onClick={minus(p.id)},modifier=Modifier.size(30.dp)){Icon(Icons.Default.Remove,null,tint=DeepGreen)}
-                                    Text(q.toString(),fontSize=12.sp)
-                                    IconButton(onClick={plus(p.id)},modifier=Modifier.size(30.dp)){Icon(Icons.Default.Add,null,tint=DeepGreen)}
+        if (selected.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                GlassPanel(Modifier.fillMaxWidth(), radius = 25.dp) {
+                    Column(Modifier.padding(25.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.ShoppingBag, null, tint = Leaf, modifier = Modifier.size(42.dp))
+                        Text("Корзина пока пуста", color = Forest, fontFamily = FontFamily.Serif, fontSize = 23.sp)
+                        Text("Добавьте любимые блюда из каталога.", color = Fog, fontSize = 12.sp)
+                    }
+                }
+            }
+        } else {
+            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(9.dp),
+                contentPadding = PaddingValues(bottom = 12.dp)) {
+                items(selected, key = { it.id }) { dish ->
+                    val count = cart[dish.id] ?: 0
+                    GlassPanel(Modifier.fillMaxWidth(), radius = 20.dp) {
+                        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            GlassPhoto(dish.image, dish.title, Modifier.size(76.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(dish.title, color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text(dish.price.toString() + " сомони · " + dish.unit, color = Fog, fontSize = 10.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(onClick = { onMinus(dish.id) }, modifier = Modifier.size(30.dp)) {
+                                        Icon(Icons.Default.Remove, null, tint = Forest)
+                                    }
+                                    Text(count.toString(), color = Forest, fontSize = 12.sp)
+                                    IconButton(onClick = { onPlus(dish.id) }, modifier = Modifier.size(30.dp)) {
+                                        Icon(Icons.Default.Add, null, tint = Forest)
+                                    }
                                 }
                             }
-                            IconButton(onClick={remove(p.id)} ){Icon(Icons.Default.Delete,null,tint=Muted)}
+                            IconButton(onClick = { onRemove(dish.id) }) { Icon(Icons.Default.DeleteOutline, null, tint = Fog) }
                         }
                     }
                 }
             }
-            Surface(color=Paper,shape=RoundedCornerShape(20.dp),border=BorderStroke(1.dp,Color.White)) {
-                Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
-                    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text("Итого за товары",color=Muted);Text(money(total),fontWeight=FontWeight.Bold,color=DeepGreen,fontSize=17.sp)}
-                    Text("Доставка оплачивается отдельно и согласуется при подтверждении.",fontSize=10.sp,color=Muted)
-                    Button(onClick=checkout,modifier=Modifier.fillMaxWidth().height(48.dp),colors=ButtonDefaults.buttonColors(containerColor=Green),shape=RoundedCornerShape(14.dp)){Text("Перейти к оформлению")}
+            GlassPanel(Modifier.fillMaxWidth().padding(bottom = 8.dp), radius = 23.dp) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Итого за товары", color = Fog, fontSize = 13.sp)
+                        Text(total.toString() + " сомони", color = Forest, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    }
+                    Text("Доставка согласуется при подтверждении заказа.", color = Fog, fontSize = 10.sp)
+                    GlassButton("Оформить заказ", onCheckout, Modifier.fillMaxWidth())
                 }
             }
         }
     }
 }
-@Composable private fun CheckoutDialog(close:()->Unit,submit:suspend (String,String,String,String)->OrderResult,onSuccess:(OrderResult)->Unit) {
-    var name by remember{mutableStateOf("")}
-    var phone by remember{mutableStateOf("+992 ")}
-    var address by remember{mutableStateOf("")}
-    var comment by remember{mutableStateOf("")}
-    var busy by remember{mutableStateOf(false)}
-    var error by remember{mutableStateOf<String?>(null)}
-    val scope=rememberCoroutineScope()
-    AlertDialog(onDismissRequest={if(!busy)close()},containerColor=Paper,title={Text("Оформление заказа",fontFamily=FontFamily.Serif,fontSize=25.sp,color=DeepGreen)},text={
-        Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-            Text("Оставьте контакты — мы свяжемся с вами для подтверждения.",fontSize=12.sp,color=Muted)
-            OutlinedTextField(name,{name=it;error=null},label={Text("Ваше имя")},singleLine=true)
-            OutlinedTextField(phone,{phone=it;error=null},label={Text("Номер телефона")},singleLine=true)
-            OutlinedTextField(address,{address=it;error=null},label={Text("Адрес доставки")},minLines=2)
-            OutlinedTextField(comment,{comment=it;error=null},label={Text("Комментарий (необязательно)")},minLines=2)
-            if(error!=null) Text(error!!,color=Color(0xFFAA4D45),fontSize=11.sp)
-            if(busy) Row(verticalAlignment=Alignment.CenterVertically){CircularProgressIndicator(Modifier.size(18.dp),color=Green);Spacer(Modifier.width(8.dp));Text("Отправляем заказ…",color=Muted,fontSize=11.sp)}
-        }
-    },confirmButton={
-        Button(enabled=!busy,onClick={
-            val digits=phone.filter{it.isDigit()}
-            when {
-                name.trim().length<2 -> error="Укажите имя (минимум 2 символа)."
-                digits.length !in 7..15 -> error="Проверьте номер телефона."
-                address.trim().length<5 -> error="Укажите полный адрес доставки."
-                else -> {busy=true;scope.launch{try{onSuccess(submit(name.trim(),phone.trim(),address.trim(),comment.trim()))}catch(e:Exception){error=e.message ?: "Не удалось отправить заказ.";busy=false}}}
+
+@Composable
+private fun DishSheet(dish: Dish, onClose: () -> Unit, onAdd: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onClose,
+        containerColor = Color(0xFFF9F8F2),
+        title = { Text(dish.title, fontFamily = FontFamily.Serif, color = Forest, fontSize = 24.sp) },
+        text = {
+            Column(Modifier.heightIn(max = 430.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                GlassPhoto(dish.image, dish.title, Modifier.fillMaxWidth().height(205.dp))
+                Text(dish.note, color = Fog, fontSize = 13.sp, lineHeight = 19.sp)
+                Text(dish.price.toString() + " сомони · " + dish.unit, color = Forest, fontWeight = FontWeight.Bold)
+                Text("Состав и возможные аллергены можно уточнить перед заказом.", color = Fog, fontSize = 11.sp)
             }
-        },colors=ButtonDefaults.buttonColors(containerColor=Green)){Text(if(busy)"Отправка…" else "Отправить заказ")}
-    },dismissButton={TextButton(onClick=close,enabled=!busy){Text("Отмена")}})
+        },
+        confirmButton = { TextButton(onClick = onAdd) { Text("Добавить", color = Forest) } },
+        dismissButton = { TextButton(onClick = onClose) { Text("Закрыть", color = Fog) } }
+    )
 }
-@Composable private fun ReviewsScreen(reviews:List<Review>,loading:Boolean) {
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Heading("ВАШЕ МНЕНИЕ ВАЖНО","Отзывы о LEPÍ")
-        Spacer(Modifier.height(12.dp))
-        when {
-            loading -> Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){CircularProgressIndicator(color=Green)}
-            reviews.isEmpty() -> Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Column(horizontalAlignment=Alignment.CenterHorizontally){Icon(Icons.Default.Star,null,tint=Green,modifier=Modifier.size(40.dp));Text("Отзывы скоро появятся здесь",fontFamily=FontFamily.Serif,fontSize=22.sp,color=DeepGreen);Text("Пока их можно посмотреть в Instagram @lepifoods.",fontSize=12.sp,color=Muted)}}
-            else -> LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-                items(reviews){r->Surface(color=Paper,shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,Color.White)){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(r.name,color=DeepGreen,fontWeight=FontWeight.Bold);Text(r.text,color=Ink,fontSize=13.sp,lineHeight=19.sp);if(r.photo!=null)AsyncImage(r.photo,"Фото отзыва",Modifier.fillMaxWidth().heightIn(max=320.dp).clip(RoundedCornerShape(13.dp)),contentScale=ContentScale.Crop)}}}
+
+@Composable
+private fun CheckoutSheet(
+    busy: Boolean,
+    onClose: () -> Unit,
+    onSubmit: (String, String, String, String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("+992 ") }
+    var address by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    AlertDialog(
+        onDismissRequest = onClose,
+        containerColor = Color(0xFFF9F8F2),
+        title = { Text("Оформление заказа", fontFamily = FontFamily.Serif, color = Forest, fontSize = 23.sp) },
+        text = {
+            Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Оставьте контакты. Мы свяжемся с вами для подтверждения.", color = Fog, fontSize = 12.sp)
+                OutlinedTextField(name, { name = it; error = null }, label = { Text("Ваше имя") }, singleLine = true)
+                OutlinedTextField(phone, { phone = it; error = null }, label = { Text("Номер телефона") }, singleLine = true)
+                OutlinedTextField(address, { address = it; error = null }, label = { Text("Адрес доставки") }, minLines = 2)
+                OutlinedTextField(note, { note = it }, label = { Text("Комментарий, необязательно") }, minLines = 2)
+                error?.let { Text(it, color = Color(0xFFAA5148), fontSize = 11.sp) }
+                if (busy) LinearProgressIndicator(Modifier.fillMaxWidth(), color = Leaf)
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !busy, onClick = {
+                val digits = phone.filter { it.isDigit() }
+                when {
+                    name.trim().length < 2 -> error = "Укажите имя."
+                    digits.length !in 7..15 -> error = "Проверьте номер телефона."
+                    address.trim().length < 5 -> error = "Укажите адрес доставки."
+                    else -> onSubmit(name.trim(), phone.trim(), address.trim(), note.trim())
+                }
+            }) { Text(if (busy) "Отправка…" else "Отправить заказ", color = Forest) }
+        },
+        dismissButton = { TextButton(enabled = !busy, onClick = onClose) { Text("Отмена", color = Fog) } }
+    )
+}
+
+@Composable
+private fun AboutPage(onInstagram: () -> Unit) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        SectionTitle("ЗНАКОМСТВО С НАМИ", "О LEPÍ")
+        GlassPhoto("packaging.jpg", "Упаковка LEPÍ", Modifier.fillMaxWidth().height(210.dp))
+        GlassPanel(Modifier.fillMaxWidth(), radius = 23.dp) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("Домашний вкус. Без лишней суеты.", color = Forest, fontFamily = FontFamily.Serif, fontSize = 25.sp)
+                Text("LEPÍ — домашние полуфабрикаты, приготовленные с заботой. Мы помогаем экономить время и чаще собираться за вкусным столом.",
+                    color = Fog, fontSize = 13.sp, lineHeight = 20.sp)
+                Text("Доставка по Худжанду", color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                GlassButton("Instagram @lepifoods", onInstagram, Modifier.fillMaxWidth())
             }
         }
-    }
-}
-@Composable private fun AboutScreen(context:Context) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(17.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
-        Heading("О НАС","Домашний вкус.\\nБез лишней суеты.")
-        AsyncImage(image("packaging.jpg"),"Фирменная упаковка LEPÍ",Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(22.dp)),contentScale=ContentScale.Crop)
-        Text("LEPÍ создан для тех дней, когда хочется вкусной домашней еды, но не хочется проводить весь день на кухне. Мы помогаем сделать повседневные моменты немного уютнее.",color=Muted,fontSize=14.sp,lineHeight=22.sp)
-        InfoLine(Icons.Default.CheckCircle,"С заботой","Внимание к каждой детали.")
-        InfoLine(Icons.Default.LocalShipping,"Доставка по Худжанду","Условия доставки согласуются при подтверждении.")
-        InfoLine(Icons.Default.Person,"Для всей семьи","Заготовки на завтрак, обед и к чаю.")
-        Button(onClick={openUrl(context,"https://www.instagram.com/lepifoods/")},colors=ButtonDefaults.buttonColors(containerColor=Green)){Text("Открыть Instagram @lepifoods")}
-        Text("Худжанд, Таджикистан · LEPÍ",color=Muted,fontSize=11.sp,modifier=Modifier.align(Alignment.CenterHorizontally))
-    }
-}
-@Composable private fun InfoLine(icon:ImageVector,title:String,subtitle:String) {
-    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        Surface(color=SoftGreen,shape=RoundedCornerShape(12.dp)){Icon(icon,null,tint=DeepGreen,modifier=Modifier.padding(10.dp).size(21.dp))}
-        Column { Text(title,fontWeight=FontWeight.SemiBold,color=Ink,fontSize=13.sp);Text(subtitle,color=Muted,fontSize=11.sp) }
     }
 }
 
-private fun cost(p:Product,q:Int):Double=when(p.id) {
-    "classic" -> (q/10)*60.0+(q%10)*6.0
-    "beef" -> (q/10)*100.0+(q%10)*10.0
-    "chopped" -> if(q==8)60.0 else 60.0+(q-8)*7.5
-    else -> q*p.price
+@Composable
+private fun SectionTitle(eyebrow: String, title: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(eyebrow, color = Leaf, fontSize = 9.sp, letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold)
+        Text(title, color = Forest, fontFamily = FontFamily.Serif, fontSize = 29.sp)
+    }
 }
-private fun money(v:Double)=if(v%1.0==0.0) v.toInt().toString()+" сомони" else "%.2f".format(java.util.Locale.US,v)+" сомони"
-private fun priceText(p:Product)=when(p.id) {
-    "meatballs" -> "25 сомони · 250 г"
-    "classic" -> "от 60 сомони · 10 шт."
-    "beef" -> "от 100 сомони · 10 шт."
-    "chopped" -> "от 60 сомони · 8 шт."
-    else -> "от "+money(cost(p,p.min))+" · 10 шт."
+
+@Composable
+private fun GlassPanel(
+    modifier: Modifier = Modifier,
+    radius: androidx.compose.ui.unit.Dp = 24.dp,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(radius),
+        color = GlassWhite,
+        border = BorderStroke(1.dp, Brush.linearGradient(listOf(Color.White, Color(0x88FFFFFF), Color(0x66A9BBA0)))),
+        shadowElevation = 5.dp,
+        content = { Column(content = content) }
+    )
 }
-private fun quantityText(p:Product,q:Int)=if(p.id=="meatballs") q.toString()+" пач. · "+(q*250)+" г" else q.toString()+" шт."
-private fun statusText(s:String)=when(s){"available"->"В наличии";"preorder"->"Готовим по предзаказу";"unavailable"->"Нет в наличии";else->"Наличие уточняется"}
-private fun statusColor(s:String)=when(s){"available"->Green;"preorder"->Color(0xFF9A7845);"unavailable"->Color(0xFFAA4D45);else->Muted}
-private fun loadCart(c:Context):Map<String,Int> = try {
-    val j=JSONObject(c.getSharedPreferences("lepi_cart",Context.MODE_PRIVATE).getString("items","{}") ?: "{}")
-    buildMap { j.keys().forEach { id-> val q=j.optInt(id,0);val p=products.find{it.id==id};if(p!=null&&q>=p.min&&q<=999)put(id,q) } }
-} catch(_:Exception){emptyMap()}
-private fun saveCart(c:Context,cart:Map<String,Int>) {
-    val j=JSONObject();cart.forEach{(id,q)->j.put(id,q)}
-    c.getSharedPreferences("lepi_cart",Context.MODE_PRIVATE).edit().putString("items",j.toString()).apply()
+
+@Composable
+private fun GlassButton(
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
+) {
+    val pressedScale by animateFloatAsState(1f, label = "button-scale")
+    Surface(
+        modifier = modifier.scale(pressedScale).clickable(onClick = onClick),
+        shape = RoundedCornerShape(if (compact) 13.dp else 17.dp),
+        color = Color(0xFFE1E9DC),
+        border = BorderStroke(1.dp, Color.White),
+        shadowElevation = 2.dp
+    ) {
+        Row(Modifier.fillMaxWidth().padding(vertical = if (compact) 8.dp else 14.dp),
+            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Text(title, color = Forest, fontSize = if (compact) 10.sp else 13.sp, fontWeight = FontWeight.SemiBold)
+            if (!compact) {
+                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Default.ArrowForward, null, tint = Forest, modifier = Modifier.size(16.dp))
+            }
+        }
+    }
 }
-private fun openUrl(c:Context,url:String?) { if(!url.isNullOrBlank()) runCatching{c.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url)))} }
+
+@Composable
+private fun GlassIconButton(icon: ImageVector, count: Int, onClick: () -> Unit) {
+    Box {
+        Surface(
+            modifier = Modifier.size(46.dp).clickable(onClick = onClick),
+            shape = CircleShape, color = GlassWhite,
+            border = BorderStroke(1.dp, Color.White), shadowElevation = 3.dp
+        ) {
+            Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = Forest) }
+        }
+        if (count > 0) {
+            Surface(Modifier.align(Alignment.TopEnd), shape = CircleShape, color = Forest) {
+                Text(count.toString(), Modifier.padding(horizontal = 5.dp, vertical = 2.dp), color = Color.White, fontSize = 9.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun GlassPhoto(file: String, description: String, modifier: Modifier = Modifier) {
+    Box(modifier.clip(RoundedCornerShape(18.dp))) {
+        Box(Modifier.fillMaxSize().background(
+            Brush.linearGradient(listOf(Color(0xFFE4EBDD), Color(0xFFF8F6EE), Color(0xFFD9E2D2)))
+        ))
+        AsyncImage(
+            model = IMAGE_ROOT + file,
+            contentDescription = description,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+private suspend fun sendOrder(
+    name: String,
+    phone: String,
+    address: String,
+    note: String,
+    cart: Map<String, Int>
+): String = withContext(Dispatchers.IO) {
+    val items = JSONArray()
+    cart.forEach { entry ->
+        items.put(JSONObject().put("id", entry.key).put("quantity", entry.value))
+    }
+    val body = JSONObject()
+        .put("name", name).put("phone", phone).put("address", address)
+        .put("comment", note).put("items", items)
+    val connection = (URL("https://lepi-orders.onrender.com/api/order").openConnection() as HttpURLConnection)
+    try {
+        connection.requestMethod = "POST"
+        connection.connectTimeout = 12000
+        connection.readTimeout = 18000
+        connection.doOutput = true
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+        connection.setRequestProperty("Origin", "https://lepikatalog.onrender.com")
+        connection.setRequestProperty("X-Order-Request-Id", UUID.randomUUID().toString())
+        connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
+        val code = connection.responseCode
+        val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+        val response = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
+        if (code !in 200..299) {
+            val error = runCatching { JSONObject(response).optString("error") }.getOrNull()
+            throw IllegalStateException(error?.takeIf { it.isNotBlank() } ?: "Ошибка сервера: " + code)
+        }
+        val json = JSONObject(response)
+        json.optJSONObject("tracking")?.optString("orderNumber").orEmpty()
+    } finally { connection.disconnect() }
+}
+
+private fun readCart(context: Context): Map<String, Int> = try {
+    val raw = context.getSharedPreferences("lepi_glass_cart", Context.MODE_PRIVATE).getString("items", "{}") ?: "{}"
+    val json = JSONObject(raw)
+    buildMap {
+        json.keys().forEach { key ->
+            val value = json.optInt(key, 0)
+            if (menu.any { it.id == key } && value in 1..999) put(key, value)
+        }
+    }
+} catch (_: Exception) { emptyMap() }
+
+private fun writeCart(context: Context, cart: Map<String, Int>) {
+    val json = JSONObject()
+    cart.forEach { json.put(it.key, it.value) }
+    context.getSharedPreferences("lepi_glass_cart", Context.MODE_PRIVATE)
+        .edit().putString("items", json.toString()).apply()
+}
+
+private fun openInstagram(context: Context) {
+    runCatching {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/lepifoods/")))
+    }
+}
