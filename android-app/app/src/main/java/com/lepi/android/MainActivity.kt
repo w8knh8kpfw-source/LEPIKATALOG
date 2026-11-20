@@ -70,23 +70,24 @@ private data class Dish(
     val id: String,
     val title: String,
     val category: String,
-    val price: Int,
+    val price: Double,
+    val minQty: Int,
     val unit: String,
     val image: String,
     val note: String
 )
 
 private val menu = listOf(
-    Dish("classic", "Сырники классические", "Сырники", 60, "10 штук", "syrniki-classic.jpg", "Нежные сырники для уютного завтрака."),
-    Dish("rafaello", "Сырники «Рафаэлло»", "Сырники", 70, "10 штук", "syrniki-rafaello.jpg", "С белым шоколадом и кокосовой стружкой."),
-    Dish("condensed", "Сырники со сгущёнкой", "Сырники", 70, "10 штук", "syrniki-condensed.jpg", "Сладкая начинка из сгущёнки."),
-    Dish("chicken", "Куриные котлеты с овощами", "Котлеты", 70, "10 штук", "cutlets-chicken-veg.jpg", "Домашние котлеты из курицы и овощей."),
-    Dish("beef", "Говяжьи котлеты", "Котлеты", 100, "10 штук", "cutlets-beef.jpg", "Сытные котлеты из говядины."),
-    Dish("chopped", "Рубленые куриные котлеты с сыром", "Котлеты", 60, "8 штук", "cutlets-chopped-chicken.jpg", "Куриное филе, сыр и зелень."),
-    Dish("meatballs", "Фрикадельки", "Фрикадельки", 25, "250 г", "meatballs.jpg", "Удобная порция для домашнего обеда."),
-    Dish("meat-pancakes", "Блинчики с мясом", "Блинчики", 90, "10 штук", "crepes-meat.jpg", "Тонкие блинчики с мясной начинкой."),
-    Dish("curd-pancakes", "Блинчики с творогом", "Блинчики", 60, "10 штук", "crepes-curd.jpg", "Нежная творожная начинка."),
-    Dish("sweet-pancakes", "Блинчики со сгущёнкой", "Блинчики", 50, "10 штук", "crepes-condensed.jpg", "Сладкий вариант к чаю.")
+    Dish("classic", "Сырники классические", "Сырники", 6.0, 10, "за штуку", "syrniki-classic.jpg", "Нежные сырники для уютного завтрака."),
+    Dish("rafaello", "Сырники «Рафаэлло»", "Сырники", 7.0, 10, "за штуку", "syrniki-rafaello.jpg", "С белым шоколадом и кокосовой стружкой."),
+    Dish("varenko", "Сырники со сгущёнкой", "Сырники", 7.0, 10, "за штуку", "syrniki-condensed.jpg", "Сладкая начинка из сгущёнки."),
+    Dish("chicken", "Куриные котлеты с овощами", "Котлеты", 7.0, 10, "за штуку", "cutlets-chicken-veg.jpg", "Домашние котлеты из курицы и овощей."),
+    Dish("beef", "Говяжьи котлеты", "Котлеты", 10.0, 10, "за штуку", "cutlets-beef.jpg", "Сытные котлеты из говядины."),
+    Dish("chopped", "Рубленые куриные котлеты с сыром", "Котлеты", 7.5, 8, "за штуку", "cutlets-chopped-chicken.jpg", "Куриное филе, сыр и зелень."),
+    Dish("meatballs", "Фрикадельки", "Фрикадельки", 25.0, 1, "250 г", "meatballs.jpg", "Удобная порция для домашнего обеда."),
+    Dish("meatp", "Блинчики с мясом", "Блинчики", 9.0, 10, "за штуку", "crepes-meat.jpg", "Тонкие блинчики с мясной начинкой."),
+    Dish("curdp", "Блинчики с творогом", "Блинчики", 6.0, 10, "за штуку", "crepes-curd.jpg", "Нежная творожная начинка."),
+    Dish("condensed", "Блинчики со сгущёнкой", "Блинчики", 5.0, 10, "за штуку", "crepes-condensed.jpg", "Сладкий вариант к чаю.")
 )
 
 private enum class Page(val label: String, val icon: ImageVector) {
@@ -130,11 +131,12 @@ private fun LepiGlassApp(context: Context) {
                 if (isWelcome) WelcomeScreen { welcome = false }
                 else MainShell(page, quantity, { page = it }, cart,
                     onDish = { selected = it },
-                    onAdd = { dish -> cart[dish.id] = (cart[dish.id] ?: 0) + 1 },
-                    onPlus = { id -> cart[id] = (cart[id] ?: 0) + 1 },
+                    onAdd = { dish -> cart[dish.id] = (cart[dish.id] ?: 0).let { if (it == 0) dish.minQty else it + 1 } },
+                    onPlus = { id -> cart[id] = minOf((cart[id] ?: 0) + 1, 200) },
                     onMinus = { id ->
                         val count = cart[id] ?: 0
-                        if (count <= 1) cart.remove(id) else cart[id] = count - 1
+                        val dish = menu.firstOrNull { it.id == id }
+                        if (dish == null || count <= dish.minQty) cart.remove(id) else cart[id] = count - 1
                     },
                     onRemove = { cart.remove(it) },
                     onCheckout = { checkout = true },
@@ -143,7 +145,7 @@ private fun LepiGlassApp(context: Context) {
             }
             selected?.let { dish ->
                 DishSheet(dish, onClose = { selected = null }, onAdd = {
-                    cart[dish.id] = (cart[dish.id] ?: 0) + 1
+                    cart[dish.id] = (cart[dish.id] ?: 0).let { if (it == 0) dish.minQty else it + 1 }
                     selected = null
                     page = Page.CART
                 })
@@ -390,7 +392,7 @@ private fun DishCard(dish: Dish, onOpen: () -> Unit, onAdd: () -> Unit) {
                 Text(dish.category.uppercase(), color = Leaf, fontSize = 8.sp, letterSpacing = 1.1.sp)
                 Text(dish.title, color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                     minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(dish.price.toString() + " сомони · " + dish.unit, color = Forest, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(priceLabel(dish), color = Forest, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 GlassButton("Добавить", onAdd, Modifier.fillMaxWidth(), compact = true)
             }
         }
@@ -406,7 +408,7 @@ private fun FeaturedDish(dish: Dish, onDish: (Dish) -> Unit) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("ПОПУЛЯРНОЕ", color = Leaf, fontSize = 8.sp, letterSpacing = 1.2.sp)
                 Text(dish.title, color = Forest, fontFamily = FontFamily.Serif, fontSize = 21.sp, lineHeight = 23.sp)
-                Text(dish.price.toString() + " сомони", color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Text(priceLabel(dish), color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 Text("Подробнее  →", color = Leaf, fontSize = 11.sp)
             }
         }
@@ -433,7 +435,7 @@ private fun CartPage(
     onCheckout: () -> Unit
 ) {
     val selected = menu.filter { (cart[it.id] ?: 0) > 0 }
-    val total = selected.sumOf { it.price * (cart[it.id] ?: 0) }
+    val total = selected.sumOf { dishCost(it, cart[it.id] ?: 0) }
     Column(Modifier.fillMaxSize()) {
         SectionTitle("ВАШ ВЫБОР", "Корзина")
         Spacer(Modifier.height(12.dp))
@@ -458,12 +460,12 @@ private fun CartPage(
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(dish.title, color = Charcoal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                Text(dish.price.toString() + " сомони · " + dish.unit, color = Fog, fontSize = 10.sp)
+                                Text(priceLabel(dish), color = Fog, fontSize = 10.sp)
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = { onMinus(dish.id) }, modifier = Modifier.size(30.dp)) {
                                         Icon(Icons.Default.Remove, null, tint = Forest)
                                     }
-                                    Text(count.toString(), color = Forest, fontSize = 12.sp)
+                                    Text(count.toString() + if (dish.id == "meatballs") " пач." else " шт.", color = Forest, fontSize = 12.sp)
                                     IconButton(onClick = { onPlus(dish.id) }, modifier = Modifier.size(30.dp)) {
                                         Icon(Icons.Default.Add, null, tint = Forest)
                                     }
@@ -499,7 +501,7 @@ private fun DishSheet(dish: Dish, onClose: () -> Unit, onAdd: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 GlassPhoto(dish.image, dish.title, Modifier.fillMaxWidth().height(205.dp))
                 Text(dish.note, color = Fog, fontSize = 13.sp, lineHeight = 19.sp)
-                Text(dish.price.toString() + " сомони · " + dish.unit, color = Forest, fontWeight = FontWeight.Bold)
+                Text(priceLabel(dish), color = Forest, fontWeight = FontWeight.Bold)
                 Text("Состав и возможные аллергены можно уточнить перед заказом.", color = Fog, fontSize = 11.sp)
             }
         },
@@ -651,6 +653,18 @@ private fun GlassPhoto(file: String, description: String, modifier: Modifier = M
     }
 }
 
+private fun dishCost(dish: Dish, quantity: Int): Double = when (dish.id) {
+    "classic" -> quantity * 6.0
+    "beef" -> quantity * 10.0
+    "chopped" -> if (quantity <= 8) 60.0 else 60.0 + (quantity - 8) * 7.5
+    "meatballs" -> quantity * 25.0
+    else -> quantity * dish.price
+}
+
+private fun money(value: Double): String = if (value % 1.0 == 0.0) value.toInt().toString() else String.format(java.util.Locale.US, "%.2f", value)
+
+private fun priceLabel(dish: Dish): String = money(dishCost(dish, dish.minQty)) + " сомони · " + (if (dish.id == "meatballs") "250 г" else dish.minQty.toString() + " шт.")
+
 private suspend fun sendOrder(
     name: String,
     phone: String,
@@ -694,7 +708,8 @@ private fun readCart(context: Context): Map<String, Int> = try {
     buildMap {
         json.keys().forEach { key ->
             val value = json.optInt(key, 0)
-            if (menu.any { it.id == key } && value in 1..999) put(key, value)
+            val dish = menu.firstOrNull { it.id == key }
+            if (dish != null && value >= dish.minQty && value <= 999) put(key, value)
         }
     }
 } catch (_: Exception) { emptyMap() }
