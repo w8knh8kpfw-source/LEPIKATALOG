@@ -139,8 +139,8 @@ async function submitEmailAuth(event) {
       $("emailAuthDescription").textContent = "Письмо отправлено на " + email + ". Введите код из письма ниже.";
       showMessage("Код отправлен. Проверьте входящие письма и папку «Спам».", false);
     } else {
-      const token = $("authOtp").value.replace(/\\D/g, "");
-      if (!/^\\d{6}$/.test(token)) {
+      const token = $("authOtp").value.replace(/\D/g, "");
+      if (!/^\d{6}$/.test(token)) {
         showMessage("Введите все 6 цифр из письма.");
         return;
       }
