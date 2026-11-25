@@ -97,114 +97,96 @@ async function signIn(provider) {
 }
 
 let emailAuthMode = "signin";
-let pendingConfirmationEmail = "";
+let otpSent = false;
 function setEmailAuthMode(mode) {
   emailAuthMode = mode;
-  const registering = mode === "signup";
-  $("emailAuthTitle").textContent = registering ? "Создание аккаунта" : "Вход по почте";
-  $("emailAuthMode").textContent = registering ? "Уже есть аккаунт? Войти" : "Создать аккаунт";
-  $("emailAuthSubmit").textContent = registering ? "Зарегистрироваться" : "Войти";
-  $("authPassword").autocomplete = registering ? "new-password" : "current-password";
-  $("forgotPassword").hidden = registering;
-  $("emailAuthDescription").textContent = registering
-    ? "Укажите почту, к которой у вас есть доступ, и придумайте пароль. После этого мы отправим письмо для подтверждения."
-    : "Введите почту и пароль, которые использовали при регистрации.";
-  $("passwordHint").textContent = registering
-    ? "Не менее 6 символов. Придумайте пароль, который вы ещё нигде не используете."
-    : "Введите пароль от вашего аккаунта.";
-  $("signupProgress").hidden = !registering;
-  $("authPassword").placeholder = registering ? "Придумайте пароль" : "Введите пароль";
+  otpSent = false;
+  $("emailAuthTitle").textContent = mode === "signup" ? "Создание аккаунта" : "Вход по почте";
+  $("emailAuthMode").textContent = mode === "signup" ? "Уже есть аккаунт? Войти" : "Создать аккаунт";
+  $("emailAuthDescription").textContent = mode === "signup"
+    ? "Укажите почту, к которой у вас есть доступ. Мы отправим код для подтверждения и создания аккаунта."
+    : "Введите почту аккаунта. Мы отправим одноразовый код для входа.";
+  $("otpField").hidden = true;
+  $("authOtp").required = false;
+  $("authOtp").value = "";
+  $("authEmail").readOnly = false;
+  $("emailAuthSubmit").textContent = "Получить код";
+  $("resendOtp").hidden = true;
   $("loginMessage").hidden = true;
 }
 async function submitEmailAuth(event) {
   event.preventDefault();
   const email = $("authEmail").value.trim().toLowerCase();
-  const password = $("authPassword").value;
   const submit = $("emailAuthSubmit");
-  if (!email || !password) return;
+  if (!email) return;
   submit.disabled = true;
-  submit.textContent = emailAuthMode === "signup" ? "Создаём аккаунт…" : "Входим…";
   $("loginMessage").hidden = true;
   try {
-    if (emailAuthMode === "signup") {
-      const { data, error } = await supabase.auth.signUp({
+    if (!otpSent) {
+      submit.textContent = "Отправляем код…";
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        password,
-        options: { emailRedirectTo: "https://lepikatalog.onrender.com/account.html" }
+        options: { shouldCreateUser: emailAuthMode === "signup" }
       });
       if (error) throw error;
-      if (data.session) {
-        currentSession = data.session;
-        renderAccount();
-      } else {
-        pendingConfirmationEmail = email;
-        $("emailAuthForm").hidden = true;
-        $("emailConfirmation").hidden = false;
-        $("confirmationEmail").textContent = email;
-        $("signupProgress").hidden = true;
-        $("loginMessage").hidden = true;
-      }
+      otpSent = true;
+      $("otpField").hidden = false;
+      $("authOtp").required = true;
+      $("authEmail").readOnly = true;
+      $("authOtp").focus();
+      submit.textContent = "Подтвердить код";
+      $("resendOtp").hidden = false;
+      $("emailAuthDescription").textContent = "Письмо отправлено на " + email + ". Введите код из письма ниже.";
+      showMessage("Код отправлен. Проверьте входящие письма и папку «Спам».", false);
     } else {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const token = $("authOtp").value.replace(/\\D/g, "");
+      if (!/^\\d{6}$/.test(token)) {
+        showMessage("Введите все 6 цифр из письма.");
+        return;
+      }
+      submit.textContent = "Проверяем…";
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "email"
+      });
       if (error) throw error;
       currentSession = data.session;
       renderAccount();
     }
   } catch (error) {
-    console.error("LEPI email auth:", error);
+    console.error("LEPI email OTP:", error);
     const detail = String(error?.message || "").toLowerCase();
-    let message = "Не удалось выполнить вход. Проверьте почту и пароль.";
-    if (detail.includes("email not confirmed")) message = "Сначала подтвердите адрес электронной почты по ссылке из письма.";
-    else if (detail.includes("already registered") || detail.includes("user already registered")) message = "Этот адрес уже зарегистрирован. Переключитесь на вход.";
-    else if (detail.includes("password should be") || detail.includes("at least")) message = "Пароль должен содержать не менее 6 символов.";
-    else if (detail.includes("invalid login credentials")) message = "Неверная почта или пароль.";
+    let message = "Не удалось выполнить действие. Проверьте адрес почты и попробуйте ещё раз.";
+    if (detail.includes("otp") || detail.includes("token")) message = "Код неверный или срок его действия истёк. Запросите новый код.";
+    else if (detail.includes("user not found") || detail.includes("signup is disabled")) message = "Аккаунт с этой почтой не найден. Переключитесь на создание аккаунта.";
     else if (error?.message) message += " " + error.message;
     showMessage(message);
   } finally {
     submit.disabled = false;
-    submit.textContent = emailAuthMode === "signup" ? "Зарегистрироваться" : "Войти";
+    if (!otpSent) submit.textContent = "Получить код";
+    else if (!currentSession) submit.textContent = "Подтвердить код";
   }
 }
-async function checkEmailConfirmation() {
-  const button = $("checkEmailConfirmation");
-  button.disabled = true;
-  button.textContent = "Проверяем…";
-  try {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    if (data.session) {
-      currentSession = data.session;
-      renderAccount();
-      return;
-    }
-    showMessage("Пока не видим подтверждённого входа. Откройте письмо, нажмите ссылку и затем попробуйте ещё раз.", false);
-  } catch (error) {
-    console.error("LEPI confirmation check:", error);
-    showMessage("Не удалось проверить статус. Обновите страницу и попробуйте снова.");
-  } finally {
-    button.disabled = false;
-    button.textContent = "Я подтвердил почту";
-  }
-}
-async function resendConfirmation() {
-  if (!pendingConfirmationEmail) return;
-  const button = $("resendConfirmation");
+async function resendEmailOtp() {
+  const email = $("authEmail").value.trim().toLowerCase();
+  const button = $("resendOtp");
+  if (!email) return;
   button.disabled = true;
   button.textContent = "Отправляем…";
   try {
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: pendingConfirmationEmail,
-      options: { emailRedirectTo: "https://lepikatalog.onrender.com/account.html" }
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: emailAuthMode === "signup" }
     });
     if (error) throw error;
-    showMessage("Если письмо можно отправить повторно, оно скоро придёт. Проверьте также папку «Спам».", false);
+    showMessage("Если отправка разрешена, новый код скоро придёт на почту.", false);
   } catch (error) {
-    console.error("LEPI resend confirmation:", error);
-    showMessage("Не удалось отправить письмо повторно. Подождите немного и попробуйте ещё раз.");
+    console.error("LEPI resend OTP:", error);
+    showMessage("Не удалось отправить новый код. Подождите немного и попробуйте ещё раз.");
   } finally {
     button.disabled = false;
-    button.textContent = "Отправить письмо ещё раз";
+    button.textContent = "Отправить код ещё раз";
   }
 }
 async function sendPasswordReset() {
@@ -396,7 +378,6 @@ if ($("accountPage")) {
   $("profileForm")?.addEventListener("submit", saveProfile);
   $("showEmailAuth")?.addEventListener("click", () => {
     $("emailAuthForm").hidden = false;
-    $("emailConfirmation").hidden = true;
     $("showEmailAuth").hidden = true;
     setEmailAuthMode("signin");
     $("authEmail")?.focus();
@@ -408,11 +389,10 @@ if ($("accountPage")) {
   });
   $("emailAuthMode")?.addEventListener("click", () => setEmailAuthMode(emailAuthMode === "signin" ? "signup" : "signin"));
   $("emailAuthForm")?.addEventListener("submit", submitEmailAuth);
-  $("forgotPassword")?.addEventListener("click", sendPasswordReset);
+  $("resendOtp")?.addEventListener("click", resendEmailOtp);
   $("checkEmailConfirmation")?.addEventListener("click", checkEmailConfirmation);
   $("resendConfirmation")?.addEventListener("click", resendConfirmation);
   $("backToEmailForm")?.addEventListener("click", () => {
-    $("emailConfirmation").hidden = true;
     $("emailAuthForm").hidden = false;
     $("authEmail").value = pendingConfirmationEmail;
     setEmailAuthMode("signin");
