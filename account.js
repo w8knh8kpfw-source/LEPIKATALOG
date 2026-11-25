@@ -74,7 +74,7 @@ async function signIn(provider) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: window.location.origin + "/account.html",
+        redirectTo: "https://lepikatalog.onrender.com/account.html",
         ...(provider === "custom:telegram" ? { scopes: "openid profile" } : {})
       }
     });
