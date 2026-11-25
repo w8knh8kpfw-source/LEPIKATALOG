@@ -45,6 +45,26 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 .provider.telegram{background:#229ed9;color:#fff;border-color:#229ed9}
 .provider.telegram:hover{background:#168ac2;border-color:#168ac2}
 .provider.telegram svg{width:24px;height:24px;fill:#fff}.email-provider svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.email-auth-form{margin-top:18px;padding:20px;border:1px solid #ffffffd9;border-radius:17px;background:#ffffff80;display:grid;gap:14px}.email-auth-form[hidden]{display:none!important}.email-auth-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.email-auth-heading strong{font:600 24px/1.1 "Cormorant Garamond",serif}.email-auth-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.email-back{justify-self:start}.email-auth-form .field input{background:#fff}
+.auth-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0 4px}
+.auth-overview-step{display:flex;align-items:flex-start;gap:9px;padding:12px;border:1px solid #ffffffc9;border-radius:13px;background:#ffffff70}
+.auth-overview-step>span{width:23px;height:23px;flex:0 0 23px;display:grid;place-items:center;border-radius:50%;background:#e5eadc;color:#53694a;font-size:11px;font-weight:700}
+.auth-overview-step div{display:grid;gap:4px}.auth-overview-step b{font-size:10px;line-height:1.35}.auth-overview-step small{font-size:9px;line-height:1.45;color:#85897d}
+.auth-step-label{display:block;font-size:9px;letter-spacing:.14em;font-weight:700;color:#74866a;margin-bottom:5px}
+.auth-form-note{font-size:11px;line-height:1.6;color:#85897d;margin:-5px 0 0}
+.field-hint{display:block;margin-top:6px;color:#85897d;font-size:10px;line-height:1.5}
+.auth-progress{display:flex;align-items:center;gap:9px;color:#8b9084;font-size:9px;font-weight:700}
+.auth-progress i{height:1px;flex:1;background:#dfe5d8}.auth-progress span.active{color:#53694a}
+.email-confirm-card{margin-top:18px;padding:22px;border:1px solid #fff;border-radius:17px;background:linear-gradient(140deg,#edf1e7,#fffdf8);text-align:center}
+.email-confirm-card[hidden]{display:none!important}.confirm-icon{width:48px;height:48px;margin:0 auto 13px;border-radius:16px;background:#e0e8d8;color:#607653;display:grid;place-items:center}
+.confirm-icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.email-confirm-card h3{font:600 29px/1.1 "Cormorant Garamond",serif;margin:6px 0;color:#30372e}
+.email-confirm-card p{font-size:11px;line-height:1.6;color:#73796d;margin:8px 0}
+.email-confirm-card>strong{display:block;overflow-wrap:anywhere;font-size:12px;color:#43583e;margin:8px 0 14px}
+.email-confirm-card ol{max-width:330px;text-align:left;margin:0 auto 18px;padding-left:20px;color:#73796d;font-size:10px;line-height:1.9}
+.email-confirm-card .primary{display:block;width:100%}.email-confirm-card .text-button{display:block;margin:7px auto 0}
+.profile-completion-note{padding:14px 16px;margin:0 0 17px;border-radius:14px;background:#eaf0e4;border:1px solid #fff;display:grid;gap:5px}
+.profile-completion-note[hidden]{display:none!important}.profile-completion-note span{font-size:9px;letter-spacing:.14em;color:#6d805f;font-weight:700}
+.profile-completion-note b{font:600 22px/1.1 "Cormorant Garamond",serif;color:#354331}.profile-completion-note small{font-size:10px;line-height:1.5;color:#6f7968}
 .guest{display:flex;justify-content:center;align-items:center;gap:8px;margin:20px auto 0;color:var(--deep);font-size:12px;font-weight:700;width:max-content;max-width:100%;padding:8px}
 .guest svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .account-message{padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.65;margin:15px 0 0}
@@ -86,7 +106,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 .order-card p{font-size:11px;color:var(--muted);line-height:1.7;margin:10px 0 13px}
 .order-bottom strong{font-size:12px}.order-bottom>div{display:flex;gap:12px;flex-wrap:wrap}
 .footer{text-align:center;color:#85897d;font-size:10px;letter-spacing:.08em;margin-top:36px}
-@media(max-width:700px){.account-shell{padding-left:18px;padding-right:18px}.topbar{height:70px}.logo{font-size:34px}.hero{padding:40px 0 20px}.login-grid{grid-template-columns:1fr;gap:9px}.provider{justify-content:flex-start;padding-left:20px}.profile-grid{grid-template-columns:1fr}.panel{border-radius:19px}.panel-head{gap:10px}.panel h2{font-size:29px}.order-bottom{align-items:flex-start;flex-direction:column}}
+@media(max-width:700px){.auth-overview{grid-template-columns:1fr;gap:7px}.auth-overview-step{padding:10px}.auth-overview-step small{font-size:10px}.account-shell{padding-left:18px;padding-right:18px}.topbar{height:70px}.logo{font-size:34px}.hero{padding:40px 0 20px}.login-grid{grid-template-columns:1fr;gap:9px}.provider{justify-content:flex-start;padding-left:20px}.profile-grid{grid-template-columns:1fr}.panel{border-radius:19px}.panel-head{gap:10px}.panel h2{font-size:29px}.order-bottom{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 <style>
@@ -120,7 +140,12 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 <section class="panel" id="loginPanel">
 <div class="kicker">Вход в аккаунт</div>
 <h2 style="margin-top:9px">Добро пожаловать</h2>
-<p class="panel-intro">Выберите удобный способ входа. После авторизации можно сохранить имя и номер телефона для следующих заказов.</p>
+<p class="panel-intro">Выберите способ входа. Если аккаунта ещё нет, его можно создать через почту за несколько шагов.</p>
+<div class="auth-overview">
+  <div class="auth-overview-step"><span>1</span><div><b>Войдите или зарегистрируйтесь</b><small>Через Google, Telegram или почту</small></div></div>
+  <div class="auth-overview-step"><span>2</span><div><b>Подтвердите почту</b><small>Только при регистрации по email, если придёт письмо</small></div></div>
+  <div class="auth-overview-step"><span>3</span><div><b>Заполните профиль</b><small>Имя и номер телефона для заказов</small></div></div>
+</div>
 <div class="login-grid">
 <button class="provider google" type="button" data-provider="google">
 <svg viewBox="0 0 24 24" aria-hidden="true"><path class="google-mark" stroke="#4285F4" d="M20.4 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h4.7a4 4 0 0 1-1.8 2.6v2.2h2.9c1.7-1.6 2.6-3.8 2.6-6.4Z"/><path class="google-mark" stroke="#34A853" d="M12 20.7c2.4 0 4.4-.8 5.8-2.1l-2.9-2.2c-.8.5-1.7.8-2.9.8-2.2 0-4.1-1.5-4.8-3.5H4.2v2.2a8.8 8.8 0 0 0 7.8 4.8Z"/><path class="google-mark" stroke="#FBBC05" d="M7.2 13.7a5.3 5.3 0 0 1 0-3.4V8.1H4.2a8.8 8.8 0 0 0 0 7.8l3-2.2Z"/><path class="google-mark" stroke="#EA4335" d="M12 6.8c1.3 0 2.4.4 3.3 1.3l2.5-2.5A8.4 8.4 0 0 0 12 3.3a8.8 8.8 0 0 0-7.8 4.8l3 2.2c.7-2 2.6-3.5 4.8-3.5Z"/></svg>
@@ -138,17 +163,30 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 </div>
 <form id="emailAuthForm" class="email-auth-form" hidden>
 <div class="email-auth-heading">
-<strong id="emailAuthTitle">Вход по почте</strong>
+<div><span class="auth-step-label">ВХОД И РЕГИСТРАЦИЯ</span><strong id="emailAuthTitle">Вход по почте</strong></div>
 <button class="text-button" type="button" id="emailAuthMode">Создать аккаунт</button>
 </div>
+<p class="auth-form-note" id="emailAuthDescription">Введите почту и пароль, которые использовали при регистрации.</p>
+<div class="auth-progress" id="signupProgress" hidden><span class="active">1. Данные</span><i></i><span>2. Подтверждение</span></div>
 <div class="field"><label for="authEmail">Электронная почта</label><input id="authEmail" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com" required></div>
-<div class="field"><label for="authPassword">Пароль</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" maxlength="72" placeholder="Не менее 6 символов" required></div>
+<div class="field"><label for="authPassword">Пароль</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" maxlength="72" placeholder="Введите пароль" required><small class="field-hint" id="passwordHint">Введите пароль от вашего аккаунта.</small></div>
 <div class="email-auth-actions">
 <button class="primary" id="emailAuthSubmit" type="submit">Войти</button>
 <button class="text-button" id="forgotPassword" type="button">Забыли пароль?</button>
 </div>
 <button class="text-button email-back" id="hideEmailAuth" type="button">Назад к способам входа</button>
 </form>
+<section class="email-confirm-card" id="emailConfirmation" hidden>
+  <div class="confirm-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6m-5 6 5 5M9 13l-5 5"/></svg></div>
+  <span class="auth-step-label">ШАГ 2 ИЗ 3</span>
+  <h3>Проверьте почту</h3>
+  <p>Мы отправили письмо со ссылкой для подтверждения адреса:</p>
+  <strong id="confirmationEmail"></strong>
+  <ol><li>Откройте письмо от Supabase.</li><li>Нажмите ссылку подтверждения.</li><li>Вернитесь сюда — аккаунт откроется автоматически.</li></ol>
+  <button class="primary" id="checkEmailConfirmation" type="button">Я подтвердил почту</button>
+  <button class="text-button" id="resendConfirmation" type="button">Отправить письмо ещё раз</button>
+  <button class="text-button email-back" id="backToEmailForm" type="button">Назад к форме</button>
+</section>
 <div id="loginMessage" class="account-message" hidden></div>
 <a class="guest" href="index.html" id="guestContinue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>Продолжить без регистрации</a>
 </section>
@@ -165,12 +203,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 </div>
 <button class="profile-edit" id="editProfile" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.8L19 8.4a2.1 2.1 0 0 0-3-3L5.2 16.2 4 20Z"/></svg>Изменить</button>
 </div>
+<div class="profile-completion-note" id="profileCompletionNote" hidden><span>ШАГ 3 ИЗ 3</span><b>Остался последний шаг</b><small>Укажите имя и номер телефона. Это поможет быстрее оформлять заказы.</small></div>
 <form id="profileForm" hidden>
 <div class="profile-grid">
 <div class="field"><label for="profileName">Имя</label><input id="profileName" maxlength="80" autocomplete="name" placeholder="Ваше имя" required></div>
 <div class="field"><label for="profilePhone">Номер телефона</label><input id="profilePhone" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="+992 ..." required></div>
 </div>
-<div class="actions"><button class="primary" type="submit">Сохранить данные</button><span class="account-muted">Адрес указывается отдельно при каждом заказе.</span></div>
+<div class="actions"><button class="primary" type="submit">Завершить настройку профиля</button><span class="account-muted">Адрес доставки указывается отдельно при каждом заказе.</span></div>
 </form>
 <div id="profileAccountMessage" class="account-message" hidden></div>
 </section>
@@ -186,6 +225,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 </section>
 <footer class="footer">LEPÍ · ВКУС ДОМАШНЕГО УЮТА · ХУДЖАНД</footer>
 </main>
-<script type="module" src="account.js?v=4.18"></script>
+<script type="module" src="account.js?v=4.19"></script>
 </body>
 </html>
