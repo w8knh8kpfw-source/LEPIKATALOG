@@ -166,27 +166,15 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 <div><span class="auth-step-label">ВХОД И РЕГИСТРАЦИЯ</span><strong id="emailAuthTitle">Вход по почте</strong></div>
 <button class="text-button" type="button" id="emailAuthMode">Создать аккаунт</button>
 </div>
-<p class="auth-form-note" id="emailAuthDescription">Введите почту и пароль, которые использовали при регистрации.</p>
-<div class="auth-progress" id="signupProgress" hidden><span class="active">1. Данные</span><i></i><span>2. Подтверждение</span></div>
+<p class="auth-form-note" id="emailAuthDescription">Укажите электронную почту. Мы отправим на неё одноразовый код.</p>
 <div class="field"><label for="authEmail">Электронная почта</label><input id="authEmail" type="email" autocomplete="email" maxlength="254" placeholder="name@example.com" required></div>
-<div class="field"><label for="authPassword">Пароль</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" maxlength="72" placeholder="Введите пароль" required><small class="field-hint" id="passwordHint">Введите пароль от вашего аккаунта.</small></div>
+<div class="field" id="otpField" hidden><label for="authOtp">Код из письма</label><input id="authOtp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000"><small class="field-hint">Введите 6 цифр из письма LEPÍ.</small></div>
 <div class="email-auth-actions">
-<button class="primary" id="emailAuthSubmit" type="submit">Войти</button>
-<button class="text-button" id="forgotPassword" type="button">Забыли пароль?</button>
+<button class="primary" id="emailAuthSubmit" type="submit">Получить код</button>
+<button class="text-button" id="resendOtp" type="button" hidden>Отправить код ещё раз</button>
 </div>
 <button class="text-button email-back" id="hideEmailAuth" type="button">Назад к способам входа</button>
 </form>
-<section class="email-confirm-card" id="emailConfirmation" hidden>
-  <div class="confirm-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6m-5 6 5 5M9 13l-5 5"/></svg></div>
-  <span class="auth-step-label">ШАГ 2 ИЗ 3</span>
-  <h3>Проверьте почту</h3>
-  <p>Мы отправили письмо со ссылкой для подтверждения адреса:</p>
-  <strong id="confirmationEmail"></strong>
-  <ol><li>Откройте письмо от Supabase.</li><li>Нажмите ссылку подтверждения.</li><li>Вернитесь сюда — аккаунт откроется автоматически.</li></ol>
-  <button class="primary" id="checkEmailConfirmation" type="button">Я подтвердил почту</button>
-  <button class="text-button" id="resendConfirmation" type="button">Отправить письмо ещё раз</button>
-  <button class="text-button email-back" id="backToEmailForm" type="button">Назад к форме</button>
-</section>
 <div id="loginMessage" class="account-message" hidden></div>
 <a class="guest" href="index.html" id="guestContinue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>Продолжить без регистрации</a>
 </section>
@@ -225,6 +213,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 </section>
 <footer class="footer">LEPÍ · ВКУС ДОМАШНЕГО УЮТА · ХУДЖАНД</footer>
 </main>
-<script type="module" src="account.js?v=4.19"></script>
+<script type="module" src="account.js?v=4.20"></script>
 </body>
 </html>
