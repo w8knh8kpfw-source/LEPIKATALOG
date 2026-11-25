@@ -528,7 +528,7 @@ async function sendOrder(event){
  try{
   const response=await fetch(ORDER_ENDPOINT,{
    method:"POST",
-   headers:{"Content-Type":"application/json","X-Order-Request-Id":activeOrderRequestId},
+   headers:{"Content-Type":"application/json","X-Order-Request-Id":activeOrderRequestId,...(window.LEPI_ACCOUNT?.getAccessToken()?{Authorization:"Bearer "+window.LEPI_ACCOUNT.getAccessToken()}: {})},
    body:JSON.stringify({...data,items:items().map(p=>({id:p.id,quantity:p.q}))})
   });
   const result=await response.json().catch(()=>({}));
