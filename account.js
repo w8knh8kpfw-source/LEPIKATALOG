@@ -97,6 +97,7 @@ async function signIn(provider) {
 }
 
 let emailAuthMode = "signin";
+let pendingConfirmationEmail = "";
 function setEmailAuthMode(mode) {
   emailAuthMode = mode;
   const registering = mode === "signup";
@@ -105,6 +106,14 @@ function setEmailAuthMode(mode) {
   $("emailAuthSubmit").textContent = registering ? "Зарегистрироваться" : "Войти";
   $("authPassword").autocomplete = registering ? "new-password" : "current-password";
   $("forgotPassword").hidden = registering;
+  $("emailAuthDescription").textContent = registering
+    ? "Укажите почту, к которой у вас есть доступ, и придумайте пароль. После этого мы отправим письмо для подтверждения."
+    : "Введите почту и пароль, которые использовали при регистрации.";
+  $("passwordHint").textContent = registering
+    ? "Не менее 6 символов. Придумайте пароль, который вы ещё нигде не используете."
+    : "Введите пароль от вашего аккаунта.";
+  $("signupProgress").hidden = !registering;
+  $("authPassword").placeholder = registering ? "Придумайте пароль" : "Введите пароль";
   $("loginMessage").hidden = true;
 }
 async function submitEmailAuth(event) {
@@ -128,7 +137,12 @@ async function submitEmailAuth(event) {
         currentSession = data.session;
         renderAccount();
       } else {
-        showMessage("Аккаунт создан. Проверьте почту и подтвердите адрес, затем вернитесь сюда для входа.", false);
+        pendingConfirmationEmail = email;
+        $("emailAuthForm").hidden = true;
+        $("emailConfirmation").hidden = false;
+        $("confirmationEmail").textContent = email;
+        $("signupProgress").hidden = true;
+        $("loginMessage").hidden = true;
       }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -149,6 +163,48 @@ async function submitEmailAuth(event) {
   } finally {
     submit.disabled = false;
     submit.textContent = emailAuthMode === "signup" ? "Зарегистрироваться" : "Войти";
+  }
+}
+async function checkEmailConfirmation() {
+  const button = $("checkEmailConfirmation");
+  button.disabled = true;
+  button.textContent = "Проверяем…";
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    if (data.session) {
+      currentSession = data.session;
+      renderAccount();
+      return;
+    }
+    showMessage("Пока не видим подтверждённого входа. Откройте письмо, нажмите ссылку и затем попробуйте ещё раз.", false);
+  } catch (error) {
+    console.error("LEPI confirmation check:", error);
+    showMessage("Не удалось проверить статус. Обновите страницу и попробуйте снова.");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Я подтвердил почту";
+  }
+}
+async function resendConfirmation() {
+  if (!pendingConfirmationEmail) return;
+  const button = $("resendConfirmation");
+  button.disabled = true;
+  button.textContent = "Отправляем…";
+  try {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingConfirmationEmail,
+      options: { emailRedirectTo: "https://lepikatalog.onrender.com/account.html" }
+    });
+    if (error) throw error;
+    showMessage("Если письмо можно отправить повторно, оно скоро придёт. Проверьте также папку «Спам».", false);
+  } catch (error) {
+    console.error("LEPI resend confirmation:", error);
+    showMessage("Не удалось отправить письмо повторно. Подождите немного и попробуйте ещё раз.");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Отправить письмо ещё раз";
   }
 }
 async function sendPasswordReset() {
@@ -252,6 +308,7 @@ function renderProfileView(name, phone) {
   if ($("profileViewPhone")) $("profileViewPhone").textContent = phone || "Телефон не указан";
   if (view) view.hidden = !(name && phone);
   if (form) form.hidden = !!(name && phone);
+  if ($("profileCompletionNote")) $("profileCompletionNote").hidden = !!(name && phone);
 }
 async function loadProfile() {
   if (!currentSession) return;
@@ -339,7 +396,9 @@ if ($("accountPage")) {
   $("profileForm")?.addEventListener("submit", saveProfile);
   $("showEmailAuth")?.addEventListener("click", () => {
     $("emailAuthForm").hidden = false;
+    $("emailConfirmation").hidden = true;
     $("showEmailAuth").hidden = true;
+    setEmailAuthMode("signin");
     $("authEmail")?.focus();
   });
   $("hideEmailAuth")?.addEventListener("click", () => {
@@ -350,6 +409,14 @@ if ($("accountPage")) {
   $("emailAuthMode")?.addEventListener("click", () => setEmailAuthMode(emailAuthMode === "signin" ? "signup" : "signin"));
   $("emailAuthForm")?.addEventListener("submit", submitEmailAuth);
   $("forgotPassword")?.addEventListener("click", sendPasswordReset);
+  $("checkEmailConfirmation")?.addEventListener("click", checkEmailConfirmation);
+  $("resendConfirmation")?.addEventListener("click", resendConfirmation);
+  $("backToEmailForm")?.addEventListener("click", () => {
+    $("emailConfirmation").hidden = true;
+    $("emailAuthForm").hidden = false;
+    $("authEmail").value = pendingConfirmationEmail;
+    setEmailAuthMode("signin");
+  });
   $("editProfile")?.addEventListener("click", () => {
     if ($("profileView")) $("profileView").hidden = true;
     if ($("profileForm")) $("profileForm").hidden = false;
