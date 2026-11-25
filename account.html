@@ -104,7 +104,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 .profile-view-copy small{font-size:11px;color:#85897d;overflow-wrap:anywhere}
 .profile-edit{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 13px;flex:0 0 auto;border:1px solid #fff;border-radius:13px;background:#ffffffb8;color:#53644a;font-size:11px;font-weight:700}
 .profile-edit svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-@media(max-width:520px){.profile-view{padding:16px;align-items:flex-start}.profile-avatar{width:48px;height:48px;flex-basis:48px;border-radius:15px}.profile-view-copy strong{font-size:23px}.profile-edit{padding:0 10px;min-height:36px}}
+.sign-out-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;padding:10px 13px;border:1px solid #e5c9c1;border-radius:12px;background:#fff8f5;color:#99574d;font:700 11px "DM Sans",sans-serif;transition:background .2s,border-color .2s,transform .2s}.sign-out-button:hover{background:#f8e9e4;border-color:#d9afa3;transform:translateY(-1px)}.sign-out-button:disabled{opacity:.6;cursor:wait;transform:none}.sign-out-button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}@media(max-width:520px){.sign-out-button{padding:9px 10px;font-size:10px}.profile-view{padding:16px;align-items:flex-start}.profile-avatar{width:48px;height:48px;flex-basis:48px;border-radius:15px}.profile-view-copy strong{font-size:23px}.profile-edit{padding:0 10px;min-height:36px}}
 </style>
 </head>
 <body>
@@ -145,7 +145,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 <section class="panel" id="profilePanel" hidden>
 <div class="panel-head">
 <div><div class="kicker">Ваш профиль</div><h2 style="margin-top:8px">Личные данные</h2><p class="panel-intro" id="accountEmail"></p></div>
-<button class="text-button" id="signOut" type="button">Выйти из аккаунта</button>
+<button class="sign-out-button" id="signOut" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3m9-8h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Выйти из аккаунта</button>
 </div>
 <div class="profile-view" id="profileView" hidden>
 <div class="profile-view-main">
@@ -175,6 +175,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 </section>
 <footer class="footer">LEPÍ · ВКУС ДОМАШНЕГО УЮТА · ХУДЖАНД</footer>
 </main>
-<script type="module" src="account.js?v=4.16"></script>
+<script type="module" src="account.js?v=4.17"></script>
 </body>
 </html>
