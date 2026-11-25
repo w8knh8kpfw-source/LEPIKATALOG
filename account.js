@@ -54,7 +54,7 @@ async function signIn(provider) {
     : "Не удалось начать вход. Проверьте, включён ли этот способ входа в настройках LEPÍ.");
 }
 function showMessage(message, isError = true) {
-  const node = $("profileAccountMessage") && !$("profilePanel")?.hidden ? $("profileAccountMessage") : $("accountMessage");
+  const node = $("profileAccountMessage") && !$("profilePanel")?.hidden ? $("profileAccountMessage") : $("loginMessage");
   if (!node) { alert(message); return; }
   node.textContent = message;
   node.className = "account-message" + (isError ? " error" : " success");
@@ -62,6 +62,8 @@ function showMessage(message, isError = true) {
 }
 async function loadFavorites() {
   if (!currentSession) return;
+  const guestFavorites = readFavorites();
+  if (guestFavorites.length) await supabase.from("favorites").upsert(guestFavorites.map((product_id) => ({ user_id: currentSession.user.id, product_id })), { onConflict: "user_id,product_id", ignoreDuplicates: true });
   const { data, error } = await supabase.from("favorites").select("product_id").eq("user_id", currentSession.user.id);
   if (!error && Array.isArray(data)) {
     favoriteIds = data.map((row) => row.product_id);
@@ -181,6 +183,7 @@ window.LEPI_ACCOUNT = {
   toggleFavorite,
   refreshFavoriteButtons,
   isFavorite: (id) => favoriteIds.includes(id),
-  getProfile: () => { try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}"); } catch { return {}; } }
+  getProfile: () => { try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}"); } catch { return {}; } },
+  getAccessToken: () => currentSession?.access_token || null
 };
 init();
