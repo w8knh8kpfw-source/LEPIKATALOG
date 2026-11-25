@@ -265,8 +265,18 @@ if ($("accountPage")) {
     $("profileName")?.focus();
   });
   $("signOut")?.addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
+    const button = $("signOut");
+    if (button) { button.disabled = true; button.setAttribute("aria-busy", "true"); }
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      currentSession = null;
+      window.location.replace("account.html");
+    } catch (error) {
+      console.error("LEPI sign out:", error);
+      showMessage("Не удалось выйти из аккаунта. Проверьте интернет и попробуйте ещё раз.");
+      if (button) { button.disabled = false; button.removeAttribute("aria-busy"); }
+    }
   });
   $("favoritesList")?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-remove-fav]");
