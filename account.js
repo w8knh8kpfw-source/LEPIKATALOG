@@ -95,94 +95,6 @@ async function signIn(provider) {
     if (button) button.disabled = false;
   }
 }
-function passkeyErrorMessage(error) {
-  const message = String(error?.message || "");
-  const code = String(error?.code || error?.name || "").toLowerCase();
-  if (!window.isSecureContext) return "Passkey доступен только на защищённом HTTPS-соединении.";
-  if (!window.PublicKeyCredential || !navigator.credentials) return "Этот браузер или устройство не поддерживает Passkey. Попробуйте Safari на актуальной версии iOS.";
-  if (code.includes("notallowed") || message.toLowerCase().includes("not allowed")) return "Запрос Passkey отменён или истекло время ожидания. Попробуйте ещё раз.";
-  if (code.includes("credential_exists") || message.toLowerCase().includes("already registered")) return "Этот Passkey уже добавлен к аккаунту.";
-  if (code.includes("credential_not_found")) return "На этом устройстве нет Passkey для аккаунта LEPÍ.";
-  return message || "Не удалось выполнить операцию Passkey. Попробуйте ещё раз.";
-}
-async function signInWithPasskey() {
-  const button = $("passkeyLogin");
-  if (button) button.disabled = true;
-  if ($("loginMessage")) $("loginMessage").hidden = true;
-  try {
-    if (!window.isSecureContext || !window.PublicKeyCredential || !navigator.credentials) {
-      throw new Error(passkeyErrorMessage(new Error("unsupported")));
-    }
-    const { data, error } = await supabase.auth.signInWithPasskey();
-    if (error) throw error;
-    currentSession = data?.session || (await supabase.auth.getSession()).data.session;
-    renderAccount();
-  } catch (error) {
-    console.error("LEPI Passkey sign-in:", error);
-    showMessage(passkeyErrorMessage(error));
-    if (button) button.disabled = false;
-  }
-}
-async function loadPasskeys() {
-  const node = $("passkeyList");
-  if (!node || !currentSession) return;
-  node.innerHTML = '<div class="passkey-empty">Загружаем сохранённые Passkey…</div>';
-  try {
-    const { data, error } = await supabase.auth.passkey.list();
-    if (error) throw error;
-    const passkeys = Array.isArray(data) ? data : [];
-    if (!passkeys.length) {
-      node.innerHTML = '<div class="passkey-empty">Пока нет сохранённых Passkey. Добавьте первый для быстрого входа.</div>';
-      return;
-    }
-    node.innerHTML = passkeys.map((item) => {
-      const date = item.created_at ? new Date(item.created_at).toLocaleDateString("ru-RU", {day:"numeric",month:"long",year:"numeric"}) : "";
-      const name = escapeHtml(item.friendly_name || "Passkey");
-      return '<div class="passkey-row"><div><strong>' + name + '</strong><small>' + (date ? "Добавлен " + date : "Сохранённый способ входа") + '</small></div><div class="passkey-row-actions"><button type="button" data-passkey-rename="' + escapeHtml(item.id) + '">Переименовать</button><button type="button" data-passkey-delete="' + escapeHtml(item.id) + '">Удалить</button></div></div>';
-    }).join("");
-  } catch (error) {
-    console.error("LEPI Passkey list:", error);
-    node.innerHTML = '<div class="passkey-empty">' + escapeHtml(passkeyErrorMessage(error)) + '</div>';
-  }
-}
-async function addPasskey() {
-  const button = $("addPasskey");
-  if (!currentSession) return showMessage("Сначала войдите в аккаунт.");
-  if (button) button.disabled = true;
-  try {
-    if (!window.isSecureContext || !window.PublicKeyCredential || !navigator.credentials) throw new Error("Passkey недоступен в этом браузере или на этом соединении.");
-    const { data, error } = await supabase.auth.registerPasskey();
-    if (error) throw error;
-    await loadPasskeys();
-    showMessage("Passkey успешно добавлен. Теперь можно входить без пароля.", false);
-  } catch (error) {
-    console.error("LEPI Passkey registration:", error);
-    showMessage(passkeyErrorMessage(error));
-  } finally {
-    if (button) button.disabled = false;
-  }
-}
-async function renamePasskey(id) {
-  const passkey = prompt("Введите название для Passkey:", "Моё устройство");
-  if (passkey === null) return;
-  const friendlyName = passkey.trim().slice(0,120);
-  if (!friendlyName) return showMessage("Название не должно быть пустым.");
-  try {
-    const { error } = await supabase.auth.passkey.update({ passkeyId: id, friendlyName });
-    if (error) throw error;
-    await loadPasskeys();
-    showMessage("Название Passkey обновлено.", false);
-  } catch (error) { showMessage(passkeyErrorMessage(error)); }
-}
-async function deletePasskey(id) {
-  if (!confirm("Удалить этот Passkey из аккаунта LEPÍ?")) return;
-  try {
-    const { error } = await supabase.auth.passkey.delete({ passkeyId: id });
-    if (error) throw error;
-    await loadPasskeys();
-    showMessage("Passkey удалён.", false);
-  } catch (error) { showMessage(passkeyErrorMessage(error)); }
-}
 async function loadFavorites() {
   if (!currentSession) return;
   const guestFavorites = readFavorites();
@@ -255,6 +167,14 @@ async function loadOrders() {
     node.innerHTML = '<p class="account-muted">История заказов пока недоступна. ' + escapeHtml(error.message) + '</p>';
   }
 }
+function renderProfileView(name, phone) {
+  const view = $("profileView");
+  const form = $("profileForm");
+  if ($("profileViewName")) $("profileViewName").textContent = name || "Имя не указано";
+  if ($("profileViewPhone")) $("profileViewPhone").textContent = phone || "Телефон не указан";
+  if (view) view.hidden = !(name && phone);
+  if (form) form.hidden = !!(name && phone);
+}
 async function loadProfile() {
   if (!currentSession) return;
   const { data, error } = await supabase.from("profiles")
@@ -267,7 +187,8 @@ async function loadProfile() {
   if ($("profilePhone")) $("profilePhone").value = phone;
   if ($("accountEmail")) $("accountEmail").textContent = currentSession.user.email || "Аккаунт подключён";
   saveCustomerCache(name, phone);
-  if (!name || !phone) showMessage("Заполните имя и номер телефона, чтобы при оформлении заказа не вводить их заново.", false);
+  renderProfileView(name, phone);
+  if (!name || !phone) showMessage("Добавьте имя и номер телефона, чтобы профиль был готов к оформлению заказов.", false);
 }
 async function saveProfile(event) {
   event.preventDefault();
@@ -282,7 +203,8 @@ async function saveProfile(event) {
   });
   if (error) return showMessage("Не удалось сохранить профиль. Проверьте соединение и попробуйте снова.");
   saveCustomerCache(full_name, phone);
-  showMessage("Данные профиля сохранены.", false);
+  renderProfileView(full_name, phone);
+  showMessage("Профиль успешно сохранён.", false);
 }
 function renderAccount() {
   const loggedIn = !!currentSession;
@@ -294,7 +216,6 @@ function renderAccount() {
     loadProfile();
     loadFavorites();
     loadOrders();
-    loadPasskeys();
   }
 }
 async function repeatOrder(orderId) {
@@ -338,13 +259,10 @@ if ($("accountPage")) {
     button.addEventListener("click", () => signIn(button.dataset.provider));
   });
   $("profileForm")?.addEventListener("submit", saveProfile);
-  $("passkeyLogin")?.addEventListener("click", signInWithPasskey);
-  $("addPasskey")?.addEventListener("click", addPasskey);
-  $("passkeyList")?.addEventListener("click", (event) => {
-    const rename = event.target.closest("[data-passkey-rename]");
-    const remove = event.target.closest("[data-passkey-delete]");
-    if (rename) renamePasskey(rename.dataset.passkeyRename);
-    if (remove) deletePasskey(remove.dataset.passkeyDelete);
+  $("editProfile")?.addEventListener("click", () => {
+    if ($("profileView")) $("profileView").hidden = true;
+    if ($("profileForm")) $("profileForm").hidden = false;
+    $("profileName")?.focus();
   });
   $("signOut")?.addEventListener("click", async () => {
     await supabase.auth.signOut();
