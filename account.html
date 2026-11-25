@@ -2,46 +2,134 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f6f3eb">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f2e9">
+<meta name="description" content="Личный кабинет LEPÍ — избранное, история заказов и данные покупателя.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data:; connect-src 'self' https://yviikxucweyacecwbfmv.supabase.co wss://yviikxucweyacecwbfmv.supabase.co https://lepi-orders.onrender.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
 <title>Мой аккаунт — LEPÍ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--paper:#f6f3eb;--card:#fffefa;--ink:#302f29;--muted:#858276;--green:#65785b;--line:#e9e4d8}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"DM Sans",sans-serif}a{color:inherit}.account-shell{max-width:980px;margin:auto;padding:26px 22px 80px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:44px}.logo{font-family:"Cormorant Garamond",serif;font-size:38px;font-weight:700;letter-spacing:.08em;text-decoration:none}.back{font-size:13px;text-decoration:none;color:var(--green);font-weight:600}.eyebrow{text-transform:uppercase;letter-spacing:.17em;font-size:10px;color:var(--green);font-weight:700}.hero h1{font-family:"Cormorant Garamond",serif;font-size:clamp(42px,7vw,66px);line-height:.95;font-weight:600;margin:12px 0}.hero p{color:var(--muted);max-width:550px;line-height:1.7}.panel{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:clamp(22px,4vw,36px);margin-top:24px;box-shadow:0 16px 50px rgba(66,57,39,.045)}.panel h2{font-family:"Cormorant Garamond",serif;font-size:34px;font-weight:600;margin:0 0 8px}.muted,.account-muted{color:var(--muted);font-size:13px;line-height:1.6}.login-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}.provider{border:1px solid var(--line);border-radius:14px;background:#fff;padding:15px 12px;font:600 13px "DM Sans";cursor:pointer;min-height:52px;transition:.2s}.provider:hover{border-color:var(--green);transform:translateY(-2px)}.provider.telegram{background:#eef2e9}.guest{display:block;text-align:center;margin-top:20px;color:var(--green);font-size:13px;font-weight:600;text-decoration:none}.account-message{padding:12px 14px;border-radius:12px;font-size:13px;margin:14px 0}.account-message.error{background:#f8eeea;color:#914d3d}.account-message.success{background:#edf2e9;color:#53694a}[hidden]{display:none!important}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field label{display:block;font-size:12px;font-weight:600;margin:0 0 8px}.field input{width:100%;border:1px solid var(--line);background:#fffefa;border-radius:12px;padding:14px;font:14px "DM Sans";color:var(--ink);outline:none}.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px #65785b18}.actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}.primary{border:0;border-radius:12px;background:var(--green);color:white;padding:14px 20px;font:600 13px "DM Sans";cursor:pointer}.secondary{border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);padding:13px 18px;font:600 13px "DM Sans";cursor:pointer}.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}.section-head h2{margin:0}.account-list-row{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding:13px 0;font-size:13px}.account-list-row b{font-weight:500;flex:1}.text-button{border:0;background:none;color:var(--green);font:600 12px "DM Sans";cursor:pointer;text-decoration:none;padding:5px}.order-card{border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}.order-top,.order-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}.order-top b{font-size:13px}.order-top span{font-size:11px;color:var(--muted)}.order-status{display:inline-block;margin-top:12px;padding:6px 10px;background:#edf2e9;color:var(--green);border-radius:20px;font-size:11px;font-weight:700}.order-card p{font-size:12px;color:var(--muted);line-height:1.6}.order-bottom strong{font-size:13px}.order-bottom>div{display:flex;gap:12px;flex-wrap:wrap}.footer-note{text-align:center;color:var(--muted);font-size:11px;margin-top:36px}
-@media(max-width:640px){.account-shell{padding:20px 16px 60px}.top{margin-bottom:34px}.login-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:1fr}.panel{border-radius:20px}.order-bottom{align-items:flex-start;flex-direction:column}}
+:root{--bg:#f5f2e9;--ink:#30372e;--muted:#85897d;--green:#667b5b;--deep:#43583e;--line:#ffffffc9;--soft:#e5eadc;--danger:#a74d46}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% 8%,#dfe6d1a8,transparent 32%),radial-gradient(ellipse at 95% 42%,#efe0c5a0,transparent 32%),var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}
+button,input{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}svg{display:block}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #819574;outline-offset:3px}
+[hidden]{display:none!important}
+.account-shell{width:min(1120px,100%);margin:auto;padding:0 5% 70px}
+.topbar{height:82px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid #ffffffa8}
+.logo{font:600 38px/1 "Cormorant Garamond",serif;letter-spacing:.16em;color:var(--ink)}
+.logo span{color:var(--green)}
+.back-link{display:inline-flex;align-items:center;gap:8px;color:var(--deep);font-size:12px;font-weight:600;transition:opacity .2s}
+.back-link:hover{opacity:.7}.back-link svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hero{padding:52px 0 26px;max-width:690px}
+.kicker{text-transform:uppercase;letter-spacing:.16em;font-size:10px;font-weight:700;color:var(--green)}
+.hero h1{font:500 clamp(42px,6vw,66px)/.98 "Cormorant Garamond",serif;margin:13px 0 12px;color:var(--ink)}
+.hero h1 em{color:var(--green);font-weight:500}
+.hero p{max-width:570px;color:#73796d;font-size:13px;line-height:1.8;margin:0}
+.panel{margin-top:18px;padding:clamp(22px,4vw,34px);border:1px solid var(--line);border-radius:23px;background:#ffffff76;box-shadow:inset 0 1px #fff,0 12px 38px #35432a0c;backdrop-filter:blur(24px) saturate(145%);-webkit-backdrop-filter:blur(24px) saturate(145%)}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
+.panel h2{font:600 32px/1.05 "Cormorant Garamond",serif;margin:0;color:var(--ink)}
+.panel-intro,.account-muted{font-size:12px;line-height:1.75;color:var(--muted);margin:8px 0 0}
+.login-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}
+.provider{min-height:54px;padding:13px 14px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #ffffffd9;border-radius:15px;background:#ffffffa8;color:var(--ink);font-size:12px;font-weight:700;box-shadow:0 5px 18px #35432a08;transition:transform .2s,border-color .2s,background .2s}
+.provider:hover{transform:translateY(-2px);border-color:#a9b89d;background:#fff}
+.provider:disabled{opacity:.55;cursor:wait;transform:none}
+.provider svg{width:19px;height:19px;flex:0 0 19px}
+.provider .google-mark{fill:none;stroke-width:3.3;stroke-linecap:round}
+.provider.telegram svg{width:20px;height:20px;fill:var(--green)}
+.guest{display:flex;justify-content:center;align-items:center;gap:8px;margin:20px auto 0;color:var(--deep);font-size:12px;font-weight:700;width:max-content;max-width:100%;padding:8px}
+.guest svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.account-message{padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.65;margin:15px 0 0}
+.account-message.error{background:#f7e9e4;color:#914d3d}.account-message.success{background:#e9eee3;color:#53694a}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field label{display:block;font-size:11px;font-weight:700;margin:0 0 8px;color:#555e50}
+.field input{width:100%;border:1px solid #ffffffd9;background:#fff9;border-radius:12px;padding:14px 15px;font:13px "DM Sans",sans-serif;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:#9eae91;box-shadow:0 0 0 3px #65785b18}
+.actions{display:flex;gap:12px;align-items:center;margin-top:18px;flex-wrap:wrap}
+.primary{border:1px solid var(--green);border-radius:12px;background:var(--green);color:white;padding:13px 19px;font:700 12px "DM Sans";transition:background .2s,transform .2s}
+.primary:hover{background:var(--deep);transform:translateY(-1px)}
+.secondary{border:1px solid #ffffffd9;border-radius:12px;background:#ffffff8a;color:var(--deep);padding:12px 16px;font:700 11px "DM Sans"}
+.text-button{border:0;background:none;color:var(--deep);font:700 11px "DM Sans";cursor:pointer;text-decoration:none;padding:6px 4px}
+.text-button:hover{color:var(--green);text-decoration:underline}
+.panel-head .text-button{white-space:nowrap}
+.account-list-row{display:flex;align-items:center;gap:12px;border-top:1px solid #ffffffbd;padding:13px 0;font-size:12px}
+.account-list-row>svg{width:16px;height:16px;fill:none;stroke:var(--green);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:0 0 16px}
+.account-list-row b{font-weight:600;flex:1}
+.order-card{border:1px solid #ffffffd9;border-radius:16px;padding:16px;margin:12px 0;background:#ffffff62}
+.order-top,.order-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.order-top b{font-size:12px}.order-top span{font-size:10px;color:var(--muted)}
+.order-status{display:inline-flex;margin-top:11px;padding:6px 10px;background:#e8eee2;color:var(--deep);border-radius:20px;font-size:10px;font-weight:700}
+.order-card p{font-size:11px;color:var(--muted);line-height:1.7;margin:10px 0 13px}
+.order-bottom strong{font-size:12px}.order-bottom>div{display:flex;gap:12px;flex-wrap:wrap}
+.footer{text-align:center;color:#85897d;font-size:10px;letter-spacing:.08em;margin-top:36px}
+@media(max-width:700px){.account-shell{padding-left:18px;padding-right:18px}.topbar{height:70px}.logo{font-size:34px}.hero{padding:40px 0 20px}.login-grid{grid-template-columns:1fr;gap:9px}.provider{justify-content:flex-start;padding-left:20px}.profile-grid{grid-template-columns:1fr}.panel{border-radius:19px}.panel-head{gap:10px}.panel h2{font-size:29px}.order-bottom{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 <body>
 <main class="account-shell" id="accountPage">
-<header class="top"><a class="logo" href="index.html">LEPÍ</a><a class="back" href="index.html">← Вернуться в каталог</a></header>
-<section class="hero"><div class="eyebrow">Личный кабинет LEPÍ</div><h1>Всё ваше.<br><em>В одном месте.</em></h1><p>Сохраняйте любимые блюда, возвращайтесь к прошлым заказам и следите за их статусом. Адрес доставки можно менять при каждом заказе.</p></section>
+<header class="topbar">
+<a class="logo" href="index.html" aria-label="LEPÍ — главная">LEPÍ<span>.</span></a>
+<a class="back-link" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"/></svg>Вернуться в каталог</a>
+</header>
+
+<section class="hero">
+<div class="kicker">Личный кабинет LEPÍ</div>
+<h1>Всё ваше.<br><em>В одном месте.</em></h1>
+<p>Любимые блюда, история заказов и ваши данные — в одном аккуратном пространстве. Адрес доставки можно менять при каждом оформлении.</p>
+</section>
+
 <section class="panel" id="loginPanel">
-<h2>Добро пожаловать</h2><p class="muted">Войдите удобным способом. Мы сохраним ваши данные, чтобы в следующий раз оформление было быстрее.</p>
+<div class="kicker">Вход в аккаунт</div>
+<h2 style="margin-top:9px">Добро пожаловать</h2>
+<p class="panel-intro">Выберите удобный способ входа. После авторизации можно сохранить имя и номер телефона для следующих заказов.</p>
 <div class="login-grid">
-<button class="provider" data-provider="apple"> Продолжить с Apple</button>
-<button class="provider" data-provider="google">G Продолжить с Google</button>
-<button class="provider telegram" data-provider="custom:telegram">✈ Продолжить с Telegram</button>
+<button class="provider" type="button" data-provider="apple">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.7 12.8c0-2 1.6-3 1.7-3.1-.9-1.3-2.3-1.5-2.8-1.5-1.2-.1-2.3.7-2.9.7-.6 0-1.5-.7-2.5-.7-1.3 0-2.5.8-3.2 1.9-1.4 2.4-.4 5.9 1 7.8.7.9 1.5 1.9 2.5 1.9 1 0 1.3-.6 2.5-.6s1.5.6 2.5.6 1.7-.9 2.4-1.9c.8-1 1.1-2 1.1-2.1-.1 0-2.3-.9-2.3-3Zm-1.9-5.8c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.8-.4 2.4-1.1Z"/></svg>
+Продолжить с Apple
+</button>
+<button class="provider" type="button" data-provider="google">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path class="google-mark" stroke="#4285F4" d="M20.4 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h4.7a4 4 0 0 1-1.8 2.6v2.2h2.9c1.7-1.6 2.6-3.8 2.6-6.4Z"/><path class="google-mark" stroke="#34A853" d="M12 20.7c2.4 0 4.4-.8 5.8-2.1l-2.9-2.2c-.8.5-1.7.8-2.9.8-2.2 0-4.1-1.5-4.8-3.5H4.2v2.2a8.8 8.8 0 0 0 7.8 4.8Z"/><path class="google-mark" stroke="#FBBC05" d="M7.2 13.7a5.3 5.3 0 0 1 0-3.4V8.1H4.2a8.8 8.8 0 0 0 0 7.8l3-2.2Z"/><path class="google-mark" stroke="#EA4335" d="M12 6.8c1.3 0 2.4.4 3.3 1.3l2.5-2.5A8.4 8.4 0 0 0 12 3.3a8.8 8.8 0 0 0-7.8 4.8l3 2.2c.7-2 2.6-3.5 4.8-3.5Z"/></svg>
+Продолжить с Google
+</button>
+<button class="provider telegram" type="button" data-provider="custom:telegram">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 4.3 18.3 20c-.2 1.1-.9 1.4-1.8.9l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L5.7 13.6.8 12c-1.1-.3-1.1-1.1.2-1.6L20.2 3c.9-.3 1.7.2 1.3 1.3Z"/></svg>
+Продолжить с Telegram
+</button>
 </div>
 <div id="loginMessage" class="account-message" hidden></div>
-<a class="guest" href="index.html" id="guestContinue">Продолжить без регистрации</a>
+<a class="guest" href="index.html" id="guestContinue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>Продолжить без регистрации</a>
 </section>
+
 <section class="panel" id="profilePanel" hidden>
-<div class="section-head"><div><div class="eyebrow">Ваш профиль</div><h2>Личные данные</h2><p class="muted" id="accountEmail"></p></div><button class="text-button" id="signOut">Выйти</button></div>
+<div class="panel-head">
+<div><div class="kicker">Ваш профиль</div><h2 style="margin-top:8px">Личные данные</h2><p class="panel-intro" id="accountEmail"></p></div>
+<button class="text-button" id="signOut" type="button">Выйти из аккаунта</button>
+</div>
 <form id="profileForm">
 <div class="profile-grid">
 <div class="field"><label for="profileName">Имя</label><input id="profileName" maxlength="80" autocomplete="name" placeholder="Ваше имя" required></div>
 <div class="field"><label for="profilePhone">Номер телефона</label><input id="profilePhone" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="+992 ..." required></div>
 </div>
-<div class="actions"><button class="primary" type="submit">Сохранить данные</button><span class="muted">Адрес указывается отдельно при каждом заказе.</span></div>
+<div class="actions"><button class="primary" type="submit">Сохранить данные</button><span class="account-muted">Адрес указывается отдельно при каждом заказе.</span></div>
 </form>
 <div id="profileAccountMessage" class="account-message" hidden></div>
 </section>
-<section class="panel" id="favoritesPanel" hidden><div class="section-head"><h2>Избранное</h2><a class="text-button" href="index.html#catalog">В каталог</a></div><div id="favoritesList"></div></section>
-<section class="panel" id="ordersPanel" hidden><div class="section-head"><h2>История заказов</h2></div><div id="ordersList"><p class="account-muted">Здесь будут ваши заказы.</p></div></section>
-<p class="footer-note">LEPÍ · Вкус домашнего уюта · Худжанд</p>
+
+<section class="panel" id="favoritesPanel" hidden>
+<div class="panel-head"><div><div class="kicker">Ваш выбор</div><h2 style="margin-top:8px">Избранное</h2></div><a class="text-button" href="index.html#catalog">Открыть каталог</a></div>
+<div id="favoritesList"></div>
+</section>
+
+<section class="panel" id="ordersPanel" hidden>
+<div class="panel-head"><div><div class="kicker">Все покупки</div><h2 style="margin-top:8px">История заказов</h2></div></div>
+<div id="ordersList"><p class="account-muted">Здесь будут ваши заказы.</p></div>
+</section>
+<footer class="footer">LEPÍ · ВКУС ДОМАШНЕГО УЮТА · ХУДЖАНД</footer>
 </main>
 <script type="module" src="account.js?v=4.12"></script>
 </body>
