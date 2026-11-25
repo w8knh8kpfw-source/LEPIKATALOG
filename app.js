@@ -200,7 +200,7 @@ function render(){
 
  $("products").innerHTML=list.map(p=>`
   <article class="product" data-product="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}">
-   <div class="prodimg">${image(p,true)}<span class="badge">${esc(p.badge)}</span><button class="product-favorite" data-fav="${p.id}" type="button" aria-label="Добавить в избранное" aria-pressed="false">♡</button></div>
+   <div class="prodimg">${image(p,true)}<span class="badge">${esc(p.badge)}</span><button class="product-favorite" data-fav="${p.id}" type="button" aria-label="Добавить в избранное" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 8.8c0 5.1-8.2 10.1-8.2 10.1S3.8 13.9 3.8 8.8a4.3 4.3 0 0 1 8.2-1.7 4.3 4.3 0 0 1 8.2 1.7Z"/></svg></button></div>
    <div class="prodinfo">
     ${statusMarkup(p.id)}
     <div class="catname">${esc(p.category)}</div>
@@ -266,7 +266,7 @@ function openProduct(id){
   <div class="detailimg">${image(p)}</div>
   <div class="detailcopy">
    <div class="kicker">${esc(p.category)} · ${esc(p.badge)}</div>
-   <div class="detail-title-row"><h2>${esc(p.name)}</h2><button class="product-favorite detail-favorite" data-fav="${p.id}" type="button" aria-label="Добавить в избранное" aria-pressed="false">♡</button></div>
+   <div class="detail-title-row"><h2>${esc(p.name)}</h2><button class="product-favorite detail-favorite" data-fav="${p.id}" type="button" aria-label="Добавить в избранное" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 8.8c0 5.1-8.2 10.1-8.2 10.1S3.8 13.9 3.8 8.8a4.3 4.3 0 0 1 8.2-1.7 4.3 4.3 0 0 1 8.2 1.7Z"/></svg></button></div>
    ${statusMarkup(p.id,"product-status-detail")}
    <p>${esc(p.desc)}</p>
    <div class="detail-extra">
