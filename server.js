@@ -98,7 +98,8 @@ function validateOrderPayload(order){
   }
   const total=items.reduce((sum,item)=>sum+item.total,0);
   if(!Number.isFinite(total)||total<=0||total>100000)return {error:"Сумма заказа выходит за допустимые пределы."};
-  return {value:{name,phone,address,comment,items,total}};
+  const userId=typeof order.userId==="string"&&/^[0-9a-f-]{36}$/i.test(order.userId)?order.userId:null;
+  return {value:{name,phone,address,comment,items,total,userId}};
 }
 async function processOrderPayload(order,record){
   const checked=validateOrderPayload(order);
@@ -111,7 +112,7 @@ async function processOrderPayload(order,record){
   if(unavailable)return {status:409,body:{error:"Товар «"+unavailable.name+"» сейчас недоступен. Обновите корзину."}};
   if(!record.trackingAttempted){
     record.trackingAttempted=true;
-    try{record.trackedOrder=await createTrackedOrder({name:clean.name,items:clean.items.map(x=>({name:x.name,quantity:x.quantity,price:formatSomoni(x.total)})),total:formatSomoni(clean.total)})}
+    try{record.trackedOrder=await createTrackedOrder({name:clean.name,phone:clean.phone,address:clean.address,comment:clean.comment,userId:clean.userId,items:clean.items.map(x=>({id:x.id,name:x.name,quantity:x.quantity,price:formatSomoni(x.total)})),total:formatSomoni(clean.total)})}
     catch(error){console.warn("Order tracking is unavailable; continuing with Telegram delivery:",error.message)}
   }
   const itemText=clean.items.map(item=>item.name+" × "+item.quantity+" — "+formatSomoni(item.total)).join("\n");
@@ -265,7 +266,7 @@ async function createTrackedOrder(order){
   const orderNumber="LEPI-"+Date.now().toString(36).toUpperCase();
   const rows=await dbRequest("orders?select=id,order_number,tracking_token",{
     method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
-    body:JSON.stringify({order_number:orderNumber,tracking_token:token,customer_name:order.name,items:order.items,total:order.total,status:"new",fulfillment_type:null,status_updated_at:new Date().toISOString()})
+    body:JSON.stringify({order_number:orderNumber,tracking_token:token,customer_name:order.name,customer_phone:order.phone||null,customer_address:order.address||null,comment:order.comment||null,user_id:order.userId||null,items:order.items,total:order.total,status:"new",fulfillment_type:null,status_updated_at:new Date().toISOString()})
   });
   if(!rows||!rows[0]||!rows[0].id)throw new Error("Order tracking record was not created");
   return {...rows[0],url:`${ALLOWED_ORIGIN.replace(/\/+$/,"")}/track.html?token=${token}`};
@@ -798,6 +799,21 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){
     catch(error){console.error("Could not load product statuses:",error.message);return sendJson(res,503,{error:"Product statuses unavailable"})}
   }
 
+  if(req.method==="GET"&&pathname==="/api/account/orders"){
+    const limit=rateLimit(req,"account-orders",30,60*1000);
+    if(!limit.allowed)return sendJson(res,429,{error:"Too many requests"},{"Retry-After":String(limit.retryAfter)});
+    const authHeader=String(req.headers.authorization||"");
+    const accessToken=authHeader.startsWith("Bearer ")?authHeader.slice(7):"";
+    if(!accessToken)return sendJson(res,401,{error:"Требуется вход в аккаунт."});
+    try{
+      const identity=await fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+accessToken},signal:AbortSignal.timeout(10000)});
+      if(!identity.ok)return sendJson(res,401,{error:"Сессия истекла. Войдите снова."});
+      const user=await identity.json();
+      const orders=await dbRequest("orders?user_id=eq."+encodeURIComponent(user.id)+"&select=id,order_number,tracking_token,customer_name,items,total,status,fulfillment_type,created_at,status_updated_at&order=created_at.desc&limit=100");
+      return sendJson(res,200,{orders:(orders||[]).map(order=>({...order,trackingUrl:ALLOWED_ORIGIN.replace(/\\/+$/,"")+"/track.html?token="+order.tracking_token}))});
+    }catch(error){console.error("Could not load account orders:",error.message);return sendJson(res,503,{error:"История заказов временно недоступна."})}
+  }
+
   if(req.method==="GET"&&pathname==="/api/track"){
     const limit=rateLimit(req,"tracking",30,60*1000);
     if(!limit.allowed)return sendJson(res,429,{error:"Too many requests"},{"Retry-After":String(limit.retryAfter)});
@@ -868,6 +884,16 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){
     }
     let order;
     try{order=JSON.parse(body)}catch{return sendJson(res,400,{error:"Invalid JSON"})}
+    const authHeader=String(req.headers.authorization||"");
+    const accessToken=authHeader.startsWith("Bearer ")?authHeader.slice(7):"";
+    if(accessToken){
+      try{
+        const identity=await fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+accessToken},signal:AbortSignal.timeout(10000)});
+        if(!identity.ok)return sendJson(res,401,{error:"Сессия аккаунта истекла. Войдите снова."});
+        const user=await identity.json();
+        order.userId=user.id;
+      }catch(error){console.error("Could not verify order account:",error.message);return sendJson(res,503,{error:"Не удалось проверить аккаунт."})}
+    }
     const checked=validateOrderPayload(order);
     if(checked.error)return sendJson(res,400,{error:checked.error});
     const fingerprint=crypto.createHash("sha256").update(JSON.stringify(order)).digest("hex");
