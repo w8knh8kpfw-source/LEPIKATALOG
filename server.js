@@ -810,7 +810,7 @@ if(req.method==="GET"&&pathname==="/api/product-statuses"){
       if(!identity.ok)return sendJson(res,401,{error:"Сессия истекла. Войдите снова."});
       const user=await identity.json();
       const orders=await dbRequest("orders?user_id=eq."+encodeURIComponent(user.id)+"&select=id,order_number,tracking_token,customer_name,items,total,status,fulfillment_type,created_at,status_updated_at&order=created_at.desc&limit=100");
-      return sendJson(res,200,{orders:(orders||[]).map(order=>({...order,trackingUrl:ALLOWED_ORIGIN.replace(/\\/+$/,"")+"/track.html?token="+order.tracking_token}))});
+      return sendJson(res,200,{orders:(orders||[]).map(order=>({...order,trackingUrl:ALLOWED_ORIGIN.replace(/\/+$/,"")+"/track.html?token="+order.tracking_token}))});
     }catch(error){console.error("Could not load account orders:",error.message);return sendJson(res,503,{error:"История заказов временно недоступна."})}
   }
 
