@@ -1160,6 +1160,25 @@ header{
  .heroart .float.one strong{font-size:25px}
 }
 
+
+/* Free delivery progress — v4.11 */
+.free-delivery{
+ margin:13px 0 12px;padding:13px 14px;border:1px solid rgba(255,255,255,.92);
+ border-radius:17px;background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(232,238,224,.66));
+ box-shadow:inset 0 1px rgba(255,255,255,.9),0 7px 20px rgba(54,67,44,.045);
+}
+.free-delivery-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.free-delivery-heading strong{font-size:11px;color:var(--deep);line-height:1.45}
+.free-delivery-heading span{font-size:10px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.free-delivery-track{height:9px;border-radius:20px;overflow:hidden;background:#dfe5d8;box-shadow:inset 0 1px 2px rgba(45,58,38,.08)}
+.free-delivery-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a6b995,#5e7952);transition:width .35s cubic-bezier(.2,.7,.2,1);box-shadow:0 0 10px rgba(102,123,91,.22)}
+.free-delivery p{margin:8px 0 0;font-size:10px;line-height:1.55;color:var(--muted)}
+.free-delivery.reached{border-color:rgba(102,123,91,.34);background:linear-gradient(135deg,#f4f7ef,#e6eddf)}
+.free-delivery.reached .free-delivery-heading strong{color:#4f7046}
+.free-delivery.reached .free-delivery-track span{background:linear-gradient(90deg,#8fae7d,#4d7544);animation:freeDeliveryGlow 2.4s ease-in-out infinite}
+@keyframes freeDeliveryGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.13)}}
+@media(prefers-reduced-motion:reduce){.free-delivery-track span,.free-delivery.reached .free-delivery-track span{transition:none;animation:none}}
+
 </style>
 </head>
 
@@ -1334,7 +1353,7 @@ header{
 </section>
 
 <section class="block" id="delivery">
- <div class="head"><div><div class="kicker">Всё просто</div><h2>От выбора до стола.</h2><p class="sub">Доставка оплачивается отдельно и уточняется при подтверждении заказа.</p></div></div>
+ <div class="head"><div><div class="kicker">Всё просто</div><h2>От выбора до стола.</h2><p class="sub">Доставка бесплатная при заказе от 250 сомони. Для заказов на меньшую сумму стоимость доставки уточняется при подтверждении.</p></div></div>
  <div class="steps">
   <article class="step glass"><div class="step-icon"><svg viewBox="0 0 24 24"><use href="#i-search"/></svg></div><b>01. Выберите блюда</b><p>Откройте карточку продукта, выберите количество и добавьте его в корзину.</p></article>
   <article class="step glass"><div class="step-icon"><svg viewBox="0 0 24 24"><use href="#i-bag"/></svg></div><b>02. Оформите заказ</b><p>Укажите имя, номер телефона и адрес доставки.</p></article>
@@ -1371,7 +1390,7 @@ header{
   <div class="footlinks"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#delivery">Доставка</a><a href="#reviews">Отзывы</a><a href="privacy.html">Политика конфиденциальности</a><a href="https://www.instagram.com/lepifoods/" target="_blank" rel="noopener noreferrer">Instagram</a></div>
   <small>© <span id="year"></span> LEPÍ</small>
  </div>
- <div class="version">Версия 4.10</div>
+ <div class="version">Версия 4.11</div>
 </footer>
 
 <div class="mobilecart">
@@ -1400,7 +1419,7 @@ header{
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="app.js?v=4.10" defer></script>
+<script src="app.js?v=4.11" defer></script>
 
 </body>
 </html>
