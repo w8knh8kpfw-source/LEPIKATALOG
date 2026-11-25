@@ -54,7 +54,7 @@ async function signIn(provider) {
     : "Не удалось начать вход. Проверьте, включён ли этот способ входа в настройках LEPÍ.");
 }
 function showMessage(message, isError = true) {
-  const node = $("accountMessage");
+  const node = $("profileAccountMessage") && !$("profilePanel")?.hidden ? $("profileAccountMessage") : $("accountMessage");
   if (!node) { alert(message); return; }
   node.textContent = message;
   node.className = "account-message" + (isError ? " error" : " success");
@@ -136,6 +136,8 @@ function renderAccount() {
   const loggedIn = !!currentSession;
   if ($("loginPanel")) $("loginPanel").hidden = loggedIn;
   if ($("profilePanel")) $("profilePanel").hidden = !loggedIn;
+  if ($("favoritesPanel")) $("favoritesPanel").hidden = !loggedIn;
+  if ($("ordersPanel")) $("ordersPanel").hidden = !loggedIn;
   if (loggedIn) {
     loadProfile();
     loadFavorites();
@@ -160,12 +162,6 @@ if ($("accountPage")) {
   $("favoritesList")?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-remove-fav]");
     if (button) toggleFavorite(button.dataset.removeFav);
-  });
-  $("ordersList")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-repeat]");
-    if (!button) return;
-    const order = button.closest(".order-card");
-    const rows = order?._orderItems;
   });
   $("ordersList")?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-repeat]");
