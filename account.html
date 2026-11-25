@@ -38,9 +38,16 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 .provider{min-height:54px;padding:13px 14px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #ffffffd9;border-radius:15px;background:#ffffffa8;color:var(--ink);font-size:12px;font-weight:700;box-shadow:0 5px 18px #35432a08;transition:transform .2s,border-color .2s,background .2s}
 .provider:hover{transform:translateY(-2px);border-color:#a9b89d;background:#fff}
 .provider:disabled{opacity:.55;cursor:wait;transform:none}
-.provider svg{width:19px;height:19px;flex:0 0 19px}
-.provider .google-mark{fill:none;stroke-width:3.3;stroke-linecap:round}
-.provider.telegram svg{width:20px;height:20px;fill:var(--green)}
+.provider svg{width:24px;height:24px;flex:0 0 24px}
+.provider .google-mark{fill:none;stroke-width:2.8;stroke-linecap:round}
+.provider.apple{background:#080808;color:#fff;border-color:#080808}
+.provider.apple:hover{background:#252525;border-color:#252525}
+.provider.google{background:#fff;color:#303134;border-color:#dadce0}
+.provider.google:hover{background:#f8faff;border-color:#b8c7e8}
+.provider.telegram{background:#229ed9;color:#fff;border-color:#229ed9}
+.provider.telegram:hover{background:#168ac2;border-color:#168ac2}
+.provider.telegram svg{width:24px;height:24px;fill:#fff}
+.provider.apple svg{width:23px;height:23px;fill:#fff}
 .guest{display:flex;justify-content:center;align-items:center;gap:8px;margin:20px auto 0;color:var(--deep);font-size:12px;font-weight:700;width:max-content;max-width:100%;padding:8px}
 .guest svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .account-message{padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.65;margin:15px 0 0}
@@ -88,11 +95,11 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 <h2 style="margin-top:9px">Добро пожаловать</h2>
 <p class="panel-intro">Выберите удобный способ входа. После авторизации можно сохранить имя и номер телефона для следующих заказов.</p>
 <div class="login-grid">
-<button class="provider" type="button" data-provider="apple">
+<button class="provider apple" type="button" data-provider="apple">
 <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.7 12.8c0-2 1.6-3 1.7-3.1-.9-1.3-2.3-1.5-2.8-1.5-1.2-.1-2.3.7-2.9.7-.6 0-1.5-.7-2.5-.7-1.3 0-2.5.8-3.2 1.9-1.4 2.4-.4 5.9 1 7.8.7.9 1.5 1.9 2.5 1.9 1 0 1.3-.6 2.5-.6s1.5.6 2.5.6 1.7-.9 2.4-1.9c.8-1 1.1-2 1.1-2.1-.1 0-2.3-.9-2.3-3Zm-1.9-5.8c.5-.7.9-1.6.8-2.5-.8 0-1.8.5-2.4 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.8-.4 2.4-1.1Z"/></svg>
 Продолжить с Apple
 </button>
-<button class="provider" type="button" data-provider="google">
+<button class="provider google" type="button" data-provider="google">
 <svg viewBox="0 0 24 24" aria-hidden="true"><path class="google-mark" stroke="#4285F4" d="M20.4 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h4.7a4 4 0 0 1-1.8 2.6v2.2h2.9c1.7-1.6 2.6-3.8 2.6-6.4Z"/><path class="google-mark" stroke="#34A853" d="M12 20.7c2.4 0 4.4-.8 5.8-2.1l-2.9-2.2c-.8.5-1.7.8-2.9.8-2.2 0-4.1-1.5-4.8-3.5H4.2v2.2a8.8 8.8 0 0 0 7.8 4.8Z"/><path class="google-mark" stroke="#FBBC05" d="M7.2 13.7a5.3 5.3 0 0 1 0-3.4V8.1H4.2a8.8 8.8 0 0 0 0 7.8l3-2.2Z"/><path class="google-mark" stroke="#EA4335" d="M12 6.8c1.3 0 2.4.4 3.3 1.3l2.5-2.5A8.4 8.4 0 0 0 12 3.3a8.8 8.8 0 0 0-7.8 4.8l3 2.2c.7-2 2.6-3.5 4.8-3.5Z"/></svg>
 Продолжить с Google
 </button>
@@ -131,6 +138,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 </section>
 <footer class="footer">LEPÍ · ВКУС ДОМАШНЕГО УЮТА · ХУДЖАНД</footer>
 </main>
-<script type="module" src="account.js?v=4.13"></script>
+<script type="module" src="account.js?v=4.14"></script>
 </body>
 </html>
