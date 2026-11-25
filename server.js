@@ -741,7 +741,7 @@ const server = http.createServer(async (req, res) => {
   );
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, X-Order-Request-Id"
+    "Content-Type, Authorization, X-Order-Request-Id"
   );
   res.setHeader("Access-Control-Max-Age", "86400");
 
