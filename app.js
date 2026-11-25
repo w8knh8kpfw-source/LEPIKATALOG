@@ -431,7 +431,7 @@ function checkout(){
     <p>Напишите ваше имя, чтобы мы знали, кому готовим заказ.</p>
     <div class="field">
      <label for="orderName">Ваше имя</label>
-     <input id="orderName" name="customerName" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" required maxlength="80" placeholder="Например, Малика" aria-describedby="nameError">
+     <input id="orderName" name="customerName" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" required maxlength="80" placeholder="Например, Малика" aria-describedby="nameError" value="${esc(window.LEPI_ACCOUNT?.getProfile()?.name||"")}">
      <span class="field-error" id="nameError">Укажите, пожалуйста, ваше имя.</span>
     </div>
     <div class="checkout-nav"><button class="btn primary" type="button" data-checkout-next="2">Продолжить ${icon("arrow")}</button></div>
@@ -442,7 +442,7 @@ function checkout(){
     <p>Оставьте номер, по которому мы сможем связаться и подтвердить заказ.</p>
     <div class="field">
      <label for="orderPhone">Номер телефона</label>
-     <input id="orderPhone" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" required maxlength="30" placeholder="+992 __ ___ __ __" aria-describedby="phoneError">
+     <input id="orderPhone" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" required maxlength="30" placeholder="+992 __ ___ __ __" aria-describedby="phoneError" value="${esc(window.LEPI_ACCOUNT?.getProfile()?.phone||"")}">
      <span class="field-error" id="phoneError">Введите корректный номер телефона.</span>
     </div>
     <div class="checkout-nav"><button class="btn checkout-back" type="button" data-checkout-back="1">Назад</button><button class="btn primary" type="button" data-checkout-next="3">Продолжить ${icon("arrow")}</button></div>
