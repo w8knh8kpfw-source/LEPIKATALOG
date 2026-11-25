@@ -322,6 +322,19 @@ function count(){return items().reduce((total,p)=>total+p.q,0)}
 
 let privacyConsent=false;
 
+const FREE_DELIVERY_THRESHOLD=250;
+function deliveryProgressMarkup(){
+ const total=sum();
+ const remaining=Math.max(0,FREE_DELIVERY_THRESHOLD-total);
+ const progress=Math.min(100,total/FREE_DELIVERY_THRESHOLD*100);
+ const reached=remaining===0;
+ return `<section class="free-delivery ${reached?"reached":""}" aria-label="Прогресс до бесплатной доставки">
+  <div class="free-delivery-heading"><strong>${reached?"Бесплатная доставка достигнута!":"До бесплатной доставки осталось…"}</strong><span>${reached?"250 / 250 сомони":money(total)+" / 250 сомони"}</span></div>
+  <div class="free-delivery-track" role="progressbar" aria-label="Сумма заказа для бесплатной доставки" aria-valuemin="0" aria-valuemax="250" aria-valuenow="${Math.min(total,250)}"><span style="width:${progress}%"></span></div>
+  <p>${reached?"Ваш заказ набрал 250 сомони. Доставка будет бесплатной.":"Добавьте ещё на "+money(remaining)+", чтобы получить бесплатную доставку."}</p>
+ </section>`;
+}
+
 function updateCart(){
  $("cartCount").textContent=count();
  $("mobileTotal").textContent=money(sum());
@@ -351,7 +364,7 @@ function updateCart(){
  `).join("")+cartSuggestionMarkup(list);
  $("cartFoot").innerHTML=`
   <div class="total"><span>Товары · ${count()} шт./пачек</span><strong>${money(sum())}</strong></div>
-  <p class="deliverywarn">Доставка оплачивается отдельно. Её стоимость уточним при подтверждении заказа.</p>
+  ${deliveryProgressMarkup()}
   <label class="privacy-consent" id="privacyConsentBox" for="privacyConsent">
    <input id="privacyConsent" type="checkbox" ${privacyConsent?"checked":""}>
    <span>Я даю согласие на обработку персональных данных в целях оформления и доставки заказа. <a href="privacy.html" target="_blank" rel="noopener">Политика конфиденциальности</a>.</span>
@@ -391,7 +404,7 @@ function buildText(data){
   "НОВЫЙ ЗАКАЗ LEPÍ","",
   ...items().map(p=>`${p.name} — ${qtyText(p,p.q)} — ${money(p.total)}`),
   "",`ИТОГО ЗА ТОВАРЫ: ${money(sum())}`,
-  "ДОСТАВКА: оплачивается отдельно, стоимость уточняется","",
+  `ДОСТАВКА: ${sum()>=FREE_DELIVERY_THRESHOLD?"бесплатно (заказ от 250 сомони)":"оплачивается отдельно"}`,"",
   `Имя: ${data.name}`,`Телефон: ${data.phone}`,`Адрес: ${data.address}`,
   `Комментарий: ${data.comment||"нет"}`
  ].join("\n");
@@ -445,7 +458,7 @@ function checkout(){
      <label for="orderComment">Комментарий <span>необязательно</span></label>
      <textarea id="orderComment" name="customerComment" maxlength="500" autocomplete="off" enterkeyhint="done" placeholder="Подъезд, этаж или пожелание"></textarea>
     </div>
-    <div class="checkout-final-summary"><div class="summary"><div class="summary-title">Ваш заказ</div>${orderRows}<div class="summary-total"><span>Итого за товары</span><strong>${money(sum())}</strong></div><p class="delivery-note">Доставка оплачивается отдельно. Стоимость согласуем с вами перед подтверждением.</p></div></div>
+    <div class="checkout-final-summary"><div class="summary"><div class="summary-title">Ваш заказ</div>${orderRows}<div class="summary-total"><span>Итого за товары</span><strong>${money(sum())}</strong></div><p class="delivery-note">${sum()>=FREE_DELIVERY_THRESHOLD?"Бесплатная доставка: сумма товаров достигла 250 сомони.":"До бесплатной доставки осталось "+money(FREE_DELIVERY_THRESHOLD-sum())+"."}</p></div></div>
     <div class="checkout-nav"><button class="btn checkout-back" type="button" data-checkout-back="2">Назад</button><button class="btn primary" id="submitOrder" type="submit">Отправить заказ ${icon("arrow")}</button></div>
    </section>
   </form>`;
