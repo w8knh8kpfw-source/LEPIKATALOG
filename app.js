@@ -200,7 +200,7 @@ function render(){
 
  $("products").innerHTML=list.map(p=>`
   <article class="product" data-product="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}">
-   <div class="prodimg">${image(p,true)}<span class="badge">${esc(p.badge)}</span></div>
+   <div class="prodimg">${image(p,true)}<span class="badge">${esc(p.badge)}</span><button class="product-favorite" data-fav="${p.id}" type="button" aria-label="Добавить в избранное" aria-pressed="false">♡</button></div>
    <div class="prodinfo">
     ${statusMarkup(p.id)}
     <div class="catname">${esc(p.category)}</div>
@@ -215,6 +215,7 @@ function render(){
   </article>
  `).join("");
  $("emptyResults").style.display=list.length?"none":"block";
+ if(window.LEPI_ACCOUNT?.refreshFavoriteButtons)window.LEPI_ACCOUNT.refreshFavoriteButtons();
 }
 
 let filterIndicatorReady=false;
@@ -265,7 +266,7 @@ function openProduct(id){
   <div class="detailimg">${image(p)}</div>
   <div class="detailcopy">
    <div class="kicker">${esc(p.category)} · ${esc(p.badge)}</div>
-   <h2>${esc(p.name)}</h2>
+   <div class="detail-title-row"><h2>${esc(p.name)}</h2><button class="product-favorite detail-favorite" data-fav="${p.id}" type="button" aria-label="Добавить в избранное" aria-pressed="false">♡</button></div>
    ${statusMarkup(p.id,"product-status-detail")}
    <p>${esc(p.desc)}</p>
    <div class="detail-extra">
@@ -285,6 +286,7 @@ function openProduct(id){
    ${relatedMarkup(p)}
   </div>`;
  openOverlay("productOverlay");
+ if(window.LEPI_ACCOUNT?.refreshFavoriteButtons)window.LEPI_ACCOUNT.refreshFavoriteButtons();
  $("dminus").onclick=()=>changeDetail(-1);
  $("dplus").onclick=()=>changeDetail(1);
  $("dadd").onclick=()=>{
@@ -559,6 +561,8 @@ function showOrderPrepared(tracking=null){
 
 /* Каталог и корзина */
 $("products").addEventListener("click",event=>{
+ const favoriteButton=event.target.closest("[data-fav]");
+ if(favoriteButton){event.preventDefault();event.stopPropagation();window.LEPI_ACCOUNT?.toggleFavorite(favoriteButton.dataset.fav);return}
  const addButton=event.target.closest("[data-add]");
  if(addButton){event.stopPropagation();add(addButton.dataset.add);return}
  const card=event.target.closest("[data-product]");
@@ -571,6 +575,8 @@ $("products").addEventListener("keydown",event=>{
 });
 $("bundleGrid").addEventListener("click",event=>{const button=event.target.closest("[data-bundle]");if(button)addBundle(button.dataset.bundle)});
 $("detail").addEventListener("click",event=>{
+ const favoriteButton=event.target.closest("[data-fav]");
+ if(favoriteButton){event.preventDefault();event.stopPropagation();window.LEPI_ACCOUNT?.toggleFavorite(favoriteButton.dataset.fav);return}
  const toggle=event.target.closest("[data-cooking-toggle]");
  if(toggle){
   const panel=$(toggle.getAttribute("aria-controls"));
