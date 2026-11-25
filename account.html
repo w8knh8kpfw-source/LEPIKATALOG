@@ -57,22 +57,22 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 .field input{width:100%;border:1px solid #ffffffd9;background:#fff9;border-radius:12px;padding:14px 15px;font:13px "DM Sans",sans-serif;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
 .field input:focus{border-color:#9eae91;box-shadow:0 0 0 3px #65785b18}
 .actions{display:flex;gap:12px;align-items:center;margin-top:18px;flex-wrap:wrap}
-.passkey-login-wrap{margin-top:14px}
-.passkey-login{width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #aebba4;border-radius:14px;background:#eef1e9;color:var(--deep);font:700 12px "DM Sans";transition:background .2s,border-color .2s,transform .2s}
-.passkey-login:hover{background:#e4eadc;border-color:#829574;transform:translateY(-1px)}
-.passkey-login svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.passkey-box{margin-top:24px;padding-top:20px;border-top:1px solid #ffffffbd}
-.passkey-box h3{font:600 24px/1.1 "Cormorant Garamond",serif;margin:0;color:var(--ink)}
-.passkey-box p{font-size:11px;line-height:1.7;color:var(--muted);margin:7px 0 14px}
-.passkey-list{margin-top:12px}
-.passkey-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #ffffffbd}
-.passkey-row strong{display:block;font-size:11px;font-weight:700}
-.passkey-row small{display:block;margin-top:4px;color:var(--muted);font-size:10px}
-.passkey-row-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.passkey-row-actions button{border:0;background:none;color:var(--deep);font:700 10px "DM Sans";padding:6px 2px}
-.passkey-row-actions button:hover{color:var(--green);text-decoration:underline}
-.passkey-empty{font-size:11px;color:var(--muted);padding:8px 0}
-@media(max-width:700px){.passkey-row{align-items:flex-start;flex-direction:column}.passkey-row-actions{width:100%}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media(max-width:700px){}
 .primary{border:1px solid var(--green);border-radius:12px;background:var(--green);color:white;padding:13px 19px;font:700 12px "DM Sans";transition:background .2s,transform .2s}
 .primary:hover{background:var(--deep);transform:translateY(-1px)}
 .secondary{border:1px solid #ffffffd9;border-radius:12px;background:#ffffff8a;color:var(--deep);padding:12px 16px;font:700 11px "DM Sans"}
@@ -91,6 +91,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 .footer{text-align:center;color:#85897d;font-size:10px;letter-spacing:.08em;margin-top:36px}
 @media(max-width:700px){.account-shell{padding-left:18px;padding-right:18px}.topbar{height:70px}.logo{font-size:34px}.hero{padding:40px 0 20px}.login-grid{grid-template-columns:1fr;gap:9px}.provider{justify-content:flex-start;padding-left:20px}.profile-grid{grid-template-columns:1fr}.panel{border-radius:19px}.panel-head{gap:10px}.panel h2{font-size:29px}.order-bottom{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<style>
+.profile-view{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px;border:1px solid #fff;border-radius:22px;background:linear-gradient(125deg,#e8ecdfd9,#ffffffb8 65%,#f2e8d9b8);box-shadow:inset 0 1px #fff,0 12px 32px #3341280b}
+.profile-view[hidden],#profileForm[hidden]{display:none!important}
+.profile-view-main{display:flex;align-items:center;gap:15px;min-width:0}
+.profile-avatar{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;border-radius:19px;background:#ffffffc9;border:1px solid #fff;color:#617653}
+.profile-avatar svg{width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.profile-view-copy{display:grid;gap:4px;min-width:0}
+.profile-view-copy span{font-size:9px;text-transform:uppercase;letter-spacing:.13em;color:#7c866f}
+.profile-view-copy strong{font:500 27px/1.1 "Cormorant Garamond",serif;color:#30372e;overflow-wrap:anywhere}
+.profile-view-copy small{font-size:11px;color:#85897d;overflow-wrap:anywhere}
+.profile-edit{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 13px;flex:0 0 auto;border:1px solid #fff;border-radius:13px;background:#ffffffb8;color:#53644a;font-size:11px;font-weight:700}
+.profile-edit svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:520px){.profile-view{padding:16px;align-items:flex-start}.profile-avatar{width:48px;height:48px;flex-basis:48px;border-radius:15px}.profile-view-copy strong{font-size:23px}.profile-edit{padding:0 10px;min-height:36px}}
 </style>
 </head>
 <body>
@@ -124,12 +138,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 Продолжить с Telegram
 </button>
 </div>
-<div class="passkey-login-wrap">
-<button class="passkey-login" id="passkeyLogin" type="button">
-<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8m-2 2 2 2m-5 1 2 2"/></svg>
-Войти с помощью Passkey
-</button>
-</div>
 <div id="loginMessage" class="account-message" hidden></div>
 <a class="guest" href="index.html" id="guestContinue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>Продолжить без регистрации</a>
 </section>
@@ -139,19 +147,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 <div><div class="kicker">Ваш профиль</div><h2 style="margin-top:8px">Личные данные</h2><p class="panel-intro" id="accountEmail"></p></div>
 <button class="text-button" id="signOut" type="button">Выйти из аккаунта</button>
 </div>
-<form id="profileForm">
+<div class="profile-view" id="profileView" hidden>
+<div class="profile-view-main">
+<div class="profile-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.5 3.2-5.5 7-5.5s6.3 2 7 5.5"/></svg></div>
+<div class="profile-view-copy"><span>Профиль LEPÍ</span><strong id="profileViewName"></strong><small id="profileViewPhone"></small></div>
+</div>
+<button class="profile-edit" id="editProfile" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.8L19 8.4a2.1 2.1 0 0 0-3-3L5.2 16.2 4 20Z"/></svg>Изменить</button>
+</div>
+<form id="profileForm" hidden>
 <div class="profile-grid">
 <div class="field"><label for="profileName">Имя</label><input id="profileName" maxlength="80" autocomplete="name" placeholder="Ваше имя" required></div>
 <div class="field"><label for="profilePhone">Номер телефона</label><input id="profilePhone" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="+992 ..." required></div>
 </div>
 <div class="actions"><button class="primary" type="submit">Сохранить данные</button><span class="account-muted">Адрес указывается отдельно при каждом заказе.</span></div>
 </form>
-<div class="passkey-box">
-<h3>Вход без пароля</h3>
-<p>Создайте Passkey для быстрого входа через Face ID, Touch ID или экран блокировки устройства.</p>
-<button class="primary" id="addPasskey" type="button">Добавить Passkey</button>
-<div class="passkey-list" id="passkeyList"><div class="passkey-empty">Загружаем сохранённые Passkey…</div></div>
-</div>
 <div id="profileAccountMessage" class="account-message" hidden></div>
 </section>
 
@@ -166,6 +175,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #8195
 </section>
 <footer class="footer">LEPÍ · ВКУС ДОМАШНЕГО УЮТА · ХУДЖАНД</footer>
 </main>
-<script type="module" src="account.js?v=4.15"></script>
+<script type="module" src="account.js?v=4.16"></script>
 </body>
 </html>
