@@ -66,18 +66,33 @@ function showMessage(message, isError = true) {
 }
 async function signIn(provider) {
   const button = document.querySelector('[data-provider="' + provider + '"]');
+  const label = provider === "custom:telegram" ? "Telegram" : provider === "apple" ? "Apple" : "Google";
   if (button) button.disabled = true;
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: window.location.origin + "/account.html",
-      ...(provider === "custom:telegram" ? { scopes: "openid profile" } : {})
+  const message = $("loginMessage");
+  if (message) message.hidden = true;
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.origin + "/account.html",
+        ...(provider === "custom:telegram" ? { scopes: "openid profile" } : {})
+      }
+    });
+    if (error) throw error;
+    if (!data?.url) throw new Error("Supabase не вернул адрес авторизации");
+  } catch (error) {
+    console.error("LEPI OAuth " + label + ":", error);
+    const detail = String(error?.message || "").toLowerCase();
+    let hint = "Не удалось запустить вход через " + label + ".";
+    if (detail.includes("provider is not enabled") || detail.includes("unsupported provider")) {
+      hint += " Этот способ входа ещё не включён в Supabase.";
+    } else if (detail.includes("redirect")) {
+      hint += " Проверьте разрешённый адрес возврата в настройках Supabase.";
+    } else {
+      hint += " " + (error?.message || "Проверьте настройки провайдера в Supabase.");
     }
-  });
-  if (button) button.disabled = false;
-  if (error) {
-    const label = provider === "custom:telegram" ? "Telegram" : provider === "apple" ? "Apple" : "Google";
-    showMessage("Не удалось начать вход через " + label + ". Проверьте, подключён ли этот способ входа в настройках LEPÍ.");
+    showMessage(hint);
+    if (button) button.disabled = false;
   }
 }
 async function loadFavorites() {
