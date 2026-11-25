@@ -66,7 +66,7 @@ function showMessage(message, isError = true) {
 }
 async function signIn(provider) {
   const button = document.querySelector('[data-provider="' + provider + '"]');
-  const label = provider === "custom:telegram" ? "Telegram" : provider === "apple" ? "Apple" : "Google";
+  const label = provider === "custom:telegram" ? "Telegram" : "Google";
   if (button) button.disabled = true;
   const message = $("loginMessage");
   if (message) message.hidden = true;
@@ -93,6 +93,84 @@ async function signIn(provider) {
     }
     showMessage(hint);
     if (button) button.disabled = false;
+  }
+}
+
+let emailAuthMode = "signin";
+function setEmailAuthMode(mode) {
+  emailAuthMode = mode;
+  const registering = mode === "signup";
+  $("emailAuthTitle").textContent = registering ? "Создание аккаунта" : "Вход по почте";
+  $("emailAuthMode").textContent = registering ? "Уже есть аккаунт? Войти" : "Создать аккаунт";
+  $("emailAuthSubmit").textContent = registering ? "Зарегистрироваться" : "Войти";
+  $("authPassword").autocomplete = registering ? "new-password" : "current-password";
+  $("forgotPassword").hidden = registering;
+  $("loginMessage").hidden = true;
+}
+async function submitEmailAuth(event) {
+  event.preventDefault();
+  const email = $("authEmail").value.trim().toLowerCase();
+  const password = $("authPassword").value;
+  const submit = $("emailAuthSubmit");
+  if (!email || !password) return;
+  submit.disabled = true;
+  submit.textContent = emailAuthMode === "signup" ? "Создаём аккаунт…" : "Входим…";
+  $("loginMessage").hidden = true;
+  try {
+    if (emailAuthMode === "signup") {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: "https://lepikatalog.onrender.com/account.html" }
+      });
+      if (error) throw error;
+      if (data.session) {
+        currentSession = data.session;
+        renderAccount();
+      } else {
+        showMessage("Аккаунт создан. Проверьте почту и подтвердите адрес, затем вернитесь сюда для входа.", false);
+      }
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      currentSession = data.session;
+      renderAccount();
+    }
+  } catch (error) {
+    console.error("LEPI email auth:", error);
+    const detail = String(error?.message || "").toLowerCase();
+    let message = "Не удалось выполнить вход. Проверьте почту и пароль.";
+    if (detail.includes("email not confirmed")) message = "Сначала подтвердите адрес электронной почты по ссылке из письма.";
+    else if (detail.includes("already registered") || detail.includes("user already registered")) message = "Этот адрес уже зарегистрирован. Переключитесь на вход.";
+    else if (detail.includes("password should be") || detail.includes("at least")) message = "Пароль должен содержать не менее 6 символов.";
+    else if (detail.includes("invalid login credentials")) message = "Неверная почта или пароль.";
+    else if (error?.message) message += " " + error.message;
+    showMessage(message);
+  } finally {
+    submit.disabled = false;
+    submit.textContent = emailAuthMode === "signup" ? "Зарегистрироваться" : "Войти";
+  }
+}
+async function sendPasswordReset() {
+  const email = $("authEmail").value.trim().toLowerCase();
+  if (!email) {
+    showMessage("Сначала укажите адрес электронной почты.");
+    $("authEmail").focus();
+    return;
+  }
+  const button = $("forgotPassword");
+  button.disabled = true;
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://lepikatalog.onrender.com/account.html"
+    });
+    if (error) throw error;
+    showMessage("Если аккаунт с этой почтой существует, на неё придёт письмо для сброса пароля.", false);
+  } catch (error) {
+    console.error("LEPI password reset:", error);
+    showMessage("Не удалось отправить письмо. Попробуйте позже.");
+  } finally {
+    button.disabled = false;
   }
 }
 async function loadFavorites() {
@@ -259,6 +337,19 @@ if ($("accountPage")) {
     button.addEventListener("click", () => signIn(button.dataset.provider));
   });
   $("profileForm")?.addEventListener("submit", saveProfile);
+  $("showEmailAuth")?.addEventListener("click", () => {
+    $("emailAuthForm").hidden = false;
+    $("showEmailAuth").hidden = true;
+    $("authEmail")?.focus();
+  });
+  $("hideEmailAuth")?.addEventListener("click", () => {
+    $("emailAuthForm").hidden = true;
+    $("showEmailAuth").hidden = false;
+    $("loginMessage").hidden = true;
+  });
+  $("emailAuthMode")?.addEventListener("click", () => setEmailAuthMode(emailAuthMode === "signin" ? "signup" : "signin"));
+  $("emailAuthForm")?.addEventListener("submit", submitEmailAuth);
+  $("forgotPassword")?.addEventListener("click", sendPasswordReset);
   $("editProfile")?.addEventListener("click", () => {
     if ($("profileView")) $("profileView").hidden = true;
     if ($("profileForm")) $("profileForm").hidden = false;
